@@ -2,6 +2,7 @@ package com.micdoodle8.ld30base;
 
 import com.micdoodle8.ld30.Game;
 import com.micdoodle8.ld30.LevelData;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.*;
@@ -66,7 +67,7 @@ public class World
 		{
 			Tile tileBefore = tileMap[x][y][layer];
 			
-			if (layer == 0 && tileBefore != tile)
+			if (layer == 1 && tileBefore != tile)
 			{
 				if (tileBefore != Tile.AIR_TILE && tileBefore != null)
 				{
@@ -150,6 +151,8 @@ public class World
 
 		GL11.glColor3f(1.0F, 1.0F, 1.0F);
 
+        Vector2d playerVec = this.screenCoordsToWorld(Mouse.getX(), Mouse.getY());
+
 		for (int x = 0; x < this.worldSize.x; x++)
 		{
 			for (int y = 0; y < this.worldSize.y; y++)
@@ -164,7 +167,8 @@ public class World
 						{
 							GL11.glPushMatrix();
                             GL11.glTranslatef(x, y, 0);
-							tile.draw();
+                            Vector2d vec = new Vector2d(x + 0.5, y + 0.5);
+							tile.draw(vec, vec.copy().sub(playerVec));
 							GL11.glPopMatrix();
 						}
 					}
