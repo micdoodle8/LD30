@@ -1,15 +1,10 @@
 package com.micdoodle8.ld30base;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.micdoodle8.ld30.Game;
 import com.micdoodle8.ld30.LevelData;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+
+import java.util.*;
 
 public class World 
 {
@@ -37,16 +32,18 @@ public class World
 
         for (int i = 0; i < levelData.charArray.length; i++)
         {
-            if (this.worldSize == null)
-            {
-                this.worldSize = new Vector2i(levelData.charArray[i].length, levelData.charArray.length);
-                tileMap = new Tile[worldSize.x][worldSize.y][2];
-            }
-
             for (int j = 0; j < levelData.charArray[i].length; j++)
             {
-                tileMap[j][i][0] = Tile.charTileMap.get(levelData.charArray[i][j]);
-                tileMap[j][i][1] = Tile.charTileMap.get(levelData.charArray[i][j]);
+                if (this.worldSize == null)
+                {
+                    this.worldSize = new Vector2i(levelData.charArray[i].length, levelData.charArray.length / levelData.charArray[i][j].length);
+                    tileMap = new Tile[worldSize.x][worldSize.y][levelData.charArray[i][j].length];
+                }
+
+                for (int layer = 0; layer < levelData.charArray[i][j].length; layer++)
+                {
+                    this.setTile(j, i, layer, Tile.charTileMap.get(levelData.charArray[i][j][layer]));
+                }
             }
         }
 
@@ -71,19 +68,19 @@ public class World
 			
 			if (layer == 0 && tileBefore != tile)
 			{
-				if (tileBefore != Tile.AIR_TILE)
+				if (tileBefore != Tile.AIR_TILE && tileBefore != null)
 				{
 					tileBounds.remove(tileBefore.getBounds(x, y));
 				}
 				
 				if (tile != Tile.AIR_TILE)
 				{
-					if (x > 1 && x < worldSize.x - 1 && y > 0 && y < worldSize.y - 1)
+//					if (x > 1 && x < worldSize.x - 1 && y > 0 && y < worldSize.y - 1)
 					{
-						if (tileMap[x - 1][y][layer] == Tile.AIR_TILE ||
-								tileMap[x + 1][y][layer] == Tile.AIR_TILE ||
-								tileMap[x][y - 1][layer] == Tile.AIR_TILE ||
-								tileMap[x][y + 1][layer] == Tile.AIR_TILE)
+//						if (tileMap[x - 1][y][layer] == Tile.AIR_TILE ||
+//								tileMap[x + 1][y][layer] == Tile.AIR_TILE ||
+//								tileMap[x][y - 1][layer] == Tile.AIR_TILE ||
+//								tileMap[x][y + 1][layer] == Tile.AIR_TILE)
 						{
 							tileBounds.add(tile.getBounds(x, y));
 						}
@@ -125,8 +122,8 @@ public class World
 
 		start.x += worldTranslate.floatX();
 		start.y += worldTranslate.floatY();
-        start.x /= 2.0;
-        start.y /= 2.0;
+//        start.x /= 2.0;
+//        start.y /= 2.0;
 		
 //		start.y += 2;
 		return start;
@@ -157,7 +154,7 @@ public class World
 		{
 			for (int y = 0; y < this.worldSize.y; y++)
 			{
-				for (int layer = 0; layer < 2; layer++)
+				for (int layer = 0; layer < this.tileMap[x][y].length; layer++)
 				{
 					if (x > screenMin.x * 2 && x < screenMax.x * 2 && y > screenMin.y * 2 && y < screenMax.y * 2)
 					{
@@ -174,6 +171,20 @@ public class World
 				}
 			}
 		}
+
+        if (Game.getInstance().keyButtonB.isKeyPressed()) {
+            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            GL11.glLineWidth(3);
+            for (BoundingBox box : this.tileBounds) {
+                Game.getInstance().tessellator.start(GL11.GL_LINE_LOOP);
+                Game.getInstance().tessellator.addVertexScaled(box.minVec.floatX(), box.minVec.floatY(), 0, 1);
+                Game.getInstance().tessellator.addVertexScaled(box.maxVec.floatX(), box.minVec.floatY(), 1, 1);
+                Game.getInstance().tessellator.addVertexScaled(box.maxVec.floatX(), box.maxVec.floatY(), 1, 0);
+                Game.getInstance().tessellator.addVertexScaled(box.minVec.floatX(), box.maxVec.floatY(), 0, 0);
+                Game.getInstance().tessellator.draw();
+            }
+            GL11.glEnable(GL11.GL_TEXTURE_2D);
+        }
 
 		GL11.glColor3f(1, 1, 1);
 		

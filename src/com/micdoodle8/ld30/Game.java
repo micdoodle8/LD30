@@ -26,6 +26,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 	public KeyButton keyButtonA = new KeyButton(Keyboard.KEY_A);
 	public KeyButton keyButtonS = new KeyButton(Keyboard.KEY_S);
 	public KeyButton keyButtonD = new KeyButton(Keyboard.KEY_D);
+	public KeyButton keyButtonB = new KeyButton(Keyboard.KEY_B);
 	public KeyButton keyButtonUp = new KeyButton(Keyboard.KEY_UP);
 	public KeyButton keyButtonDown = new KeyButton(Keyboard.KEY_DOWN);
 	public KeyButton keyButtonLeft = new KeyButton(Keyboard.KEY_LEFT);
@@ -119,16 +120,6 @@ public class Game extends com.micdoodle8.ld30base.Window
 		{
 			deltaTicks = 0;
 		}
-
-        if (keyButtonRight.isKeyPressed())
-        {
-            this.gameWorld.worldTranslate.x += 1;
-        }
-
-        if (keyButtonLeft.isKeyPressed())
-        {
-            this.gameWorld.worldTranslate.x -= 1;
-        }
 		
 		if (!mouseClickedLast && Mouse.isButtonDown(0))
 		{
@@ -166,7 +157,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 	{
 		double playerPosX = this.player.position.x;
 		double playerMotionY = this.player.motion.y;
-		this.player = null;
+//		this.player = null;
 //		this.gameWorld = new World(new Vector2i(342, 106));
 		
 //		this.player = new EntityPlayer(gameWorld);

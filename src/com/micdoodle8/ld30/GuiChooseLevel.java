@@ -57,6 +57,8 @@ public class GuiChooseLevel extends GuiScreen
         {
             Game.getInstance().gameWorld = new World(this.levelData.get(((GuiButton) element).identifier));
             Game.getInstance().gameWorld.worldScale = 40;
+            Game.getInstance().player = new EntityPlayer(Game.getInstance().gameWorld, new Vector2d(1, 1));
+            Game.getInstance().gameWorld.addEntityToWorld(Game.getInstance().player);
             Game.getInstance().setGuiScreen(new GuiGame());
         }
     }
