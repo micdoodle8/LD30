@@ -9,7 +9,10 @@ import java.util.List;
 public class EntityPlayer extends EntityWithLife
 {
     private Texture[] textures;
+    private Texture standingTexture;
+    private Texture jumpingTexture;
     private Direction facingDir = Direction.RIGHT;
+    private int texture = -1;
 
 	public EntityPlayer(World world, Vector2d position)
 	{
@@ -17,6 +20,8 @@ public class EntityPlayer extends EntityWithLife
 		this.size = new Vector2d(0.9, 1.8);
         this.position = position;
         textures = new Texture[] { Texture.getTexture("robot0.png"), Texture.getTexture("robot1.png"), Texture.getTexture("robot2.png"), Texture.getTexture("robot3.png") };
+        this.standingTexture = Texture.getTexture("robot4.png");
+        this.jumpingTexture = Texture.getTexture("robot5.png");
 	}
 
 	@Override
@@ -41,7 +46,18 @@ public class EntityPlayer extends EntityWithLife
 //        GL11.glEnable(GL11.GL_TEXTURE_2D);
 //        GL11.glTranslatef(this.position.floatX(), this.position.floatY(), 0.0F);
 
-        this.textures[(int)Math.floor(this.timeAlive * 5.0F) % this.textures.length].bind();
+        if (texture == -1)
+        {
+            this.standingTexture.bind();
+        }
+        else if (texture == -2)
+        {
+            this.jumpingTexture.bind();
+        }
+        else
+        {
+            this.textures[this.texture].bind();
+        }
 
         Game.getInstance().tessellator.start(GL11.GL_QUADS);
         int minX = facingDir == Direction.RIGHT ? 1 : 0;
@@ -77,35 +93,86 @@ public class EntityPlayer extends EntityWithLife
 	public void update(float deltaTime) 
 	{
 		super.update(deltaTime);
-        this.motion.x = this.facingDir == Direction.RIGHT ? 2.5 : -2.5;
 
-        List<BoundingBox> boundsAround = this.world.getBoundsWithin(this.getBounds().copy().add(motion.copy().multiply(deltaTime)));
+        if (this.onGround)
+        {
+            if (Game.getInstance().keyButtonSpace.isKeyDown())
+            {
+                this.motion.y = 5;
+            }
+        }
+        else
+        {
+            this.motion.y -= 9.81 * deltaTime;
+        }
 
-        double oldMotionY = this.motion.y;
+        boolean motionHandled = false;
 
-        if (Game.getInstance().keyButtonRight.isKeyDown())
+        if (Game.getInstance().keyButtonRight.isKeyPressed())
         {
             if (this.facingDir != Direction.RIGHT)
             {
                 this.facingDir = Direction.RIGHT;
             }
+
+            this.motion.x = 2.5;
+            motionHandled = true;
         }
 
-        if (Game.getInstance().keyButtonLeft.isKeyDown())
+        if (Game.getInstance().keyButtonLeft.isKeyPressed())
         {
             if (this.facingDir != Direction.LEFT)
             {
                 this.facingDir = Direction.LEFT;
             }
+
+            this.motion.x = -2.5;
+            motionHandled = true;
         }
 
+        if (!motionHandled)
+        {
+            this.motion.x *= (0.9);
+        }
+
+        List<BoundingBox> boundsAround = this.world.getBoundsWithin(this.getBounds().copy().add(motion.copy().multiply(deltaTime)));
+
+        double oldMotionY = this.motion.y;
         for (BoundingBox box : boundsAround)
         {
-            double newMotionX = box.calcYOffset(this.getBounds(), this.motion.y);
-            double newMotionY = box.calcXOffset(this.getBounds(), this.motion.x);
-            this.motion.y = newMotionX;
-            this.motion.x = newMotionY;
+            double mY = box.calcYOffset(this.getBounds(), this.motion.y);
+            double mX = box.calcXOffset(this.getBounds(), this.motion.x);
+            this.motion.y = mY;
+            this.motion.x = mX;
         }
+
+        if (Math.abs(this.motion.y) < Math.abs(oldMotionY))
+        {
+            this.onGround = true;
+        }
+        else
+        {
+            this.onGround = false;
+        }
+
+        if (!this.onGround && !this.lastOnGround)
+        {
+            this.texture = -2;
+        }
+        else
+        {
+            int count = (int)Math.floor(this.timeAlive * 7.5F) % this.textures.length;
+            if ((((count == 1 || count == 3) && this.texture != count) || this.texture == -1) && Math.abs(this.motion.x) < 0.5)
+            {
+                this.texture = -1;
+            }
+            else
+            {
+                this.texture = count;
+            }
+        }
+
+        this.lastOnGround = this.onGround;
 	}
 
 	@Override

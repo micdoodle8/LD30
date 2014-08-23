@@ -11,6 +11,8 @@ public abstract class Entity
 	public boolean scheduleRemoval;
     public float timeAlive;
     public BoundingBox boundingBox;
+    public boolean onGround;
+    public boolean lastOnGround;
 	
 	public Entity(World world)
 	{
@@ -27,7 +29,7 @@ public abstract class Entity
     {
         timeAlive += deltaTime;
         this.update(deltaTime);
-        this.position = this.position.add(this.motion.multiply(deltaTime));
+        this.position = this.position.add(this.motion.copy().multiply(deltaTime));
         this.boundingBox = this.getBounds();
     }
 	
