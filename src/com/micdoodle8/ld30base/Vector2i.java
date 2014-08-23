@@ -44,4 +44,10 @@ public class Vector2i
 		this.y += other.y;
 		return this;
 	}
+
+    @Override
+    public String toString()
+    {
+        return "x: " + this.x + "  y: " + y;
+    }
 }

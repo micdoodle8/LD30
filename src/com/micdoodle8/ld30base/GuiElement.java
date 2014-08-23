@@ -15,4 +15,6 @@ public abstract class GuiElement extends Gui
 	}
 
     public abstract void onMouseClick(int x, int y);
+
+    public abstract boolean isEnabled();
 }

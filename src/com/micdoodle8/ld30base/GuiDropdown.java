@@ -183,4 +183,9 @@ public class GuiDropdown extends GuiElement
             }
         }
     }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

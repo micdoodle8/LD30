@@ -1,6 +1,7 @@
 package com.micdoodle8.ld30base;
 
 import com.micdoodle8.ld30.Game;
+import com.micdoodle8.ld30.GuiChooseLevel;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -104,7 +105,7 @@ public class GuiMainMenu extends GuiScreen
 	{
 		if (element == this.buttonStart)
 		{
-			Game.getInstance().setGuiScreen(new GuiGame());
+			Game.getInstance().setGuiScreen(new GuiChooseLevel());
 			Game.getInstance().init();
 		}
 		else if (element == this.buttonExit)

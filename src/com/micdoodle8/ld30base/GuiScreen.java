@@ -41,14 +41,17 @@ public abstract class GuiScreen extends Gui
 	{
 		for (GuiElement element : elements)
 		{
-            element.onMouseClick(x, y);
-			if (x > element.position.x - element.size.x / 2 &&
-					x < element.position.x + element.size.x / 2 &&
-					y > element.position.y - element.size.y / 2 &&
-					y < element.position.y + element.size.y / 2)
-			{
-				this.onElementClicked(element);
-			}
+            if (element.isEnabled())
+            {
+                element.onMouseClick(x, y);
+                if (x > element.position.x - element.size.x / 2 &&
+                        x < element.position.x + element.size.x / 2 &&
+                        y > element.position.y - element.size.y / 2 &&
+                        y < element.position.y + element.size.y / 2)
+                {
+                    this.onElementClicked(element);
+                }
+            }
 		}
 	}
 	

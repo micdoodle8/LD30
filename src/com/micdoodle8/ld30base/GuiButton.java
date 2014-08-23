@@ -13,12 +13,21 @@ public class GuiButton extends GuiElement
 	public static final Texture buttonTexture = Texture.getTexture("button2.png");
 	public boolean hover = false;
     private Font font = null;
+    private final Texture texture;
+    public boolean enabled = true;
+    public int identifier = -1;
 	
+	public GuiButton(Font font, Vector2i position, Vector2i size, String text, Texture texture)
+	{
+        super(position, size);
+        this.font = font;
+        this.text = text;
+        this.texture = texture;
+    }
+
 	public GuiButton(Font font, Vector2i position, Vector2i size, String text)
 	{
-		super(position, size);
-        this.font = font;
-		this.text = text;
+        this(font, position, size, text, buttonTexture);
 	}
 
 	@Override
@@ -57,8 +66,13 @@ public class GuiButton extends GuiElement
 		{
 			GL11.glColor3f(1, 1, 1);
 		}
+
+        if (!enabled)
+        {
+            GL11.glColor3f(0.6F, 0.6F, 0.6F);
+        }
 		
-		buttonTexture.bind();
+		this.texture.bind();
 		GL11.glBegin(GL11.GL_QUADS);
 		float sizeX = (float) (this.size.x);
 		float sizeY = (float) (this.size.y);		
@@ -82,5 +96,10 @@ public class GuiButton extends GuiElement
     @Override
     public void onMouseClick(int x, int y) {
 
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 }

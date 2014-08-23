@@ -38,6 +38,7 @@ public class Game extends com.micdoodle8.ld30base.Window
     public TrueTypeFont fontSourceSansProSize24;
     public TrueTypeFont fontSourceSansProSize16;
     public Tessellator tessellator = new Tessellator();
+    public int unlockedLevel = 0;
 
 	public URL getResource(String name)
 	{
