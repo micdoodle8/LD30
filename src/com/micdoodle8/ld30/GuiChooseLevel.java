@@ -1,9 +1,9 @@
 package com.micdoodle8.ld30;
 
 import com.micdoodle8.ld30base.*;
-import org.lwjgl.opengl.GL11;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,13 +13,13 @@ public class GuiChooseLevel extends GuiScreen
     private int gridWidth;
     private int gridHeight;
     private Texture texture = Texture.getTexture("buttonSquare.png");
+    private List<LevelData> levelData = new ArrayList<LevelData>();
 
     public GuiChooseLevel()
     {
         File baseFile = new File("./res/");
         System.out.println(baseFile.getAbsolutePath());
         File directory = new File(baseFile, "levels");
-        List<File> levelFiles = new ArrayList<File>();
         File[] fList = directory.listFiles();
 
         if (fList != null)
@@ -28,12 +28,24 @@ public class GuiChooseLevel extends GuiScreen
             {
                 if (file.isFile())
                 {
-                    levelFiles.add(file);
+                    try
+                    {
+                        LevelData data = LevelData.read(file);
+                        if (data != null)
+                        {
+                            levelData.add(data);
+                        }
+                    }
+                    catch (IOException e)
+                    {
+                        System.err.println("Failed to read level: " + file.getAbsolutePath());
+                        e.printStackTrace();
+                    }
                 }
             }
         }
 
-        levelCount = levelFiles.size();
+        levelCount = levelData.size();
         this.gridWidth = 4;
         this.gridHeight = 4;
     }
@@ -43,8 +55,9 @@ public class GuiChooseLevel extends GuiScreen
     {
         if (element instanceof GuiButton && ((GuiButton) element).identifier < this.gridWidth * this.gridHeight)
         {
+            Game.getInstance().gameWorld = new World(this.levelData.get(((GuiButton) element).identifier));
+            Game.getInstance().gameWorld.worldScale = 40;
             Game.getInstance().setGuiScreen(new GuiGame());
-            // TODO Start Game Here
         }
     }
 

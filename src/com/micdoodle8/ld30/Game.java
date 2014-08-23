@@ -18,7 +18,7 @@ import java.util.Random;
 
 public class Game extends com.micdoodle8.ld30base.Window
 {
-	private World gameWorld;
+	public World gameWorld;
 	public Random random;
 	private static Game INSTANCE;
 	public EntityPlayer player;
@@ -100,9 +100,9 @@ public class Game extends com.micdoodle8.ld30base.Window
 		}
 		else
 		{
-            // TODO START NEW GAME
+            //
 
-            gameWorld = new World(new Vector2i(250, 256));
+//            gameWorld = new World(new Vector2i(250, 256));
 //            gameWorld.worldScale = 8;
 //            gameWorld.worldTranslate = new Vector2d(80, 44);
 
@@ -167,7 +167,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 		double playerPosX = this.player.position.x;
 		double playerMotionY = this.player.motion.y;
 		this.player = null;
-		this.gameWorld = new World(new Vector2i(342, 106));
+//		this.gameWorld = new World(new Vector2i(342, 106));
 		
 //		this.player = new EntityPlayer(gameWorld);
 //		this.player.position = new Vector2d(100, 100);

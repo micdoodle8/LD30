@@ -106,7 +106,7 @@ public class GuiMainMenu extends GuiScreen
 		if (element == this.buttonStart)
 		{
 			Game.getInstance().setGuiScreen(new GuiChooseLevel());
-			Game.getInstance().init();
+//			Game.getInstance().init();
 		}
 		else if (element == this.buttonExit)
 		{

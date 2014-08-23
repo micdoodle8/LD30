@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.micdoodle8.ld30.Game;
+import com.micdoodle8.ld30.LevelData;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -17,24 +18,38 @@ public class World
 	public Set<BoundingBox> tileBounds = new HashSet<BoundingBox>();
 	public Vector2i worldSize;
 //	public Vector2d screenTranslate = new Vector2d(0, 0);
-//	public float worldScale = 1;
+	public float worldScale = 1;
 	public Vector2d worldTranslate = new Vector2d(0, 0);
 	
-	public World(Vector2i worldSize)
+	public World(LevelData levelData)
 	{
-		this.worldSize = worldSize;
-		tileMap = new Tile[worldSize.x][worldSize.y][2];
 
-		for (int x = 0; x < this.worldSize.x; x++)
-		{
-			for (int y = 0; y < this.worldSize.y; y++)
-			{
-				for (int layer = 0; layer < 2; layer++)
-				{
-					tileMap[x][y][layer] = Tile.AIR_TILE;
-				}
-			}
-		}
+//		for (int x = 0; x < this.worldSize.x; x++)
+//		{
+//			for (int y = 0; y < this.worldSize.y; y++)
+//			{
+//				for (int layer = 0; layer < 2; layer++)
+//				{
+//					tileMap[x][y][layer] = Tile.AIR_TILE;
+//				}
+//			}
+//		}
+
+        for (int i = 0; i < levelData.charArray.length; i++)
+        {
+            if (this.worldSize == null)
+            {
+                this.worldSize = new Vector2i(levelData.charArray[i].length, levelData.charArray.length);
+                tileMap = new Tile[worldSize.x][worldSize.y][2];
+            }
+
+            for (int j = 0; j < levelData.charArray[i].length; j++)
+            {
+                tileMap[j][i][0] = Tile.charTileMap.get(levelData.charArray[i][j]);
+                tileMap[j][i][1] = Tile.charTileMap.get(levelData.charArray[i][j]);
+            }
+        }
+
 	}
 	
 	public void addEntityToWorld(Entity entity)
@@ -105,6 +120,9 @@ public class World
 		start.x /= Game.getInstance().scale.floatX();
 		start.y /= Game.getInstance().scale.floatY();
 
+		start.x /= worldScale;
+		start.y /= worldScale;
+
 		start.x += worldTranslate.floatX();
 		start.y += worldTranslate.floatY();
         start.x /= 2.0;
@@ -120,7 +138,7 @@ public class World
 
 //		GL11.glTranslatef(screenTranslate.floatX(), screenTranslate.floatY(), 0);
 //		GL11.glTranslatef(Game.getInstance().windowSize.x / 2, Game.getInstance().windowSize.y / 2, 0);
-//		GL11.glScalef(worldScale, worldScale, worldScale);
+		GL11.glScalef(worldScale, worldScale, worldScale);
         GL11.glScalef(Game.getInstance().scale.floatX(), Game.getInstance().scale.floatY(), 1.0F);
 		GL11.glTranslatef(-worldTranslate.floatX(), -worldTranslate.floatY(), 0);
 
@@ -130,7 +148,7 @@ public class World
 		
 		Vector2d screenMin = screenCoordsToWorld(-20, -20);
 		Vector2d screenMax = screenCoordsToWorld(Game.getInstance().windowSize.x + 10, Game.getInstance().windowSize.y + 10);
-		
+
 		Game.getInstance().particleManager.drawParticles();
 
 		GL11.glColor3f(1.0F, 1.0F, 1.0F);
@@ -141,14 +159,14 @@ public class World
 			{
 				for (int layer = 0; layer < 2; layer++)
 				{
-					if (x > screenMin.x && x < screenMax.x && y > screenMin.y && y < screenMax.y)
+					if (x > screenMin.x * 2 && x < screenMax.x * 2 && y > screenMin.y * 2 && y < screenMax.y * 2)
 					{
 						Tile tile = this.tileMap[x][y][layer];
 						
 						if (tile != Tile.AIR_TILE)
 						{
 							GL11.glPushMatrix();
-							GL11.glTranslatef(x, y, 0);
+                            GL11.glTranslatef(x, y, 0);
 							tile.draw();
 							GL11.glPopMatrix();
 						}
