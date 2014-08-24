@@ -12,7 +12,7 @@ import org.newdawn.slick.openal.AudioLoader;
 import org.newdawn.slick.openal.SoundStore;
 
 import java.awt.*;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
@@ -52,7 +52,7 @@ public class Game extends com.micdoodle8.ld30base.Window
     public int transitionState = 0;
     public Audio[] transitionSound = new Audio[2];
     public Audio soundEffectWalk;
-    public Audio soundEffectButton;
+//    public Audio soundEffectButton;
     public Audio soundEffectZap;
     public Audio musicMain;
     public double musicCooldown;
@@ -60,21 +60,26 @@ public class Game extends com.micdoodle8.ld30base.Window
     public boolean paused = false;
 
     public URL getResource(String name)
+    {
+        return this.getResource("res/", name);
+    }
+
+    public URL getResource(String prefix, String name)
 	{
         try
         {
-            URL url = getClass().getClassLoader().getResource("res/" + name);
+            URL url = getClass().getClassLoader().getResource(prefix + name);
 
             if (url == null)
             {
-                System.err.println("Failed to get resource: \"res/" + name + "\"");
+                System.err.println("Failed to get resource: \"" + prefix + name + "\"");
             }
 
             return url;
         }
         catch (Exception e)
         {
-            System.err.println("Failed to get resource: \"res/" + name + "\"");
+            System.err.println("Failed to get resource: \"" + prefix + name + "\"");
             e.printStackTrace();
         }
 
@@ -89,7 +94,7 @@ public class Game extends com.micdoodle8.ld30base.Window
             transitionSound[0] = AudioLoader.getAudio("OGG", getResource("tele0.ogg").openStream());
             transitionSound[1] = AudioLoader.getAudio("OGG", getResource("tele1.ogg").openStream());
             soundEffectWalk = AudioLoader.getAudio("OGG", getResource("walk.ogg").openStream());
-            soundEffectButton = AudioLoader.getAudio("WAV", getResource("button.wav").openStream());
+//            soundEffectButton = AudioLoader.getAudio("WAV", getResource("button.wav").openStream());
             soundEffectZap = AudioLoader.getAudio("OGG", getResource("zap.ogg").openStream());
             musicMain = AudioLoader.getStreamingAudio("OGG", getResource("music.ogg").openConnection().getURL());
         }
@@ -106,6 +111,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 		{
 			try
 			{
+                this.readLevelProgress();
                 // TODO LOAD RESOURCES
 
                 InputStream inputStream = getResource("SourceSansPro-Semibold.otf").openStream();
@@ -147,6 +153,50 @@ public class Game extends com.micdoodle8.ld30base.Window
 		initOnce = true;
 	}
 
+    public void saveLevelProgress()
+    {
+        File file = new File(".");
+        File saveFolder = new File(file, "save");
+        if (!saveFolder.exists())
+        {
+            saveFolder.mkdir();
+        }
+        File saveFile = new File(saveFolder, "progress.fsav");
+        try
+        {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(saveFile));
+            bw.write(String.valueOf(unlockedLevel));
+            bw.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void readLevelProgress()
+    {
+        File file = new File(".");
+        File saveFolder = new File(file, "save");
+        if (saveFolder.exists())
+        {
+            File saveFile = new File(saveFolder, "progress.fsav");
+            if (saveFile.exists())
+            {
+                try
+                {
+                    BufferedReader br = new BufferedReader(new FileReader(saveFile));
+                    this.unlockedLevel = Integer.parseInt(br.readLine());
+                    br.close();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 	@Override
 	protected void update(int deltaTicks) 
 	{
@@ -159,7 +209,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 
         if (musicCooldown <= 0)
         {
-//            this.musicMain.playAsMusic(1.0F, 1.0F, true);
+            this.musicMain.playAsMusic(1.0F, 1.0F, true);
             this.musicCooldown = 2;
         }
 
@@ -253,6 +303,8 @@ public class Game extends com.micdoodle8.ld30base.Window
 	
 	public boolean startNextWorld(int level)
 	{
+        this.unlockedLevel = Math.max(this.unlockedLevel, level);
+        this.saveLevelProgress();
         if (level < levelData.size())
         {
             this.transitionState = 0;

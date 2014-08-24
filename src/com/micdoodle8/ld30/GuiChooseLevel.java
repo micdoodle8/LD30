@@ -2,50 +2,40 @@ package com.micdoodle8.ld30;
 
 import com.micdoodle8.ld30base.*;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GuiChooseLevel extends GuiScreen
 {
-    private int levelCount = 0;
     private int gridWidth;
     private int gridHeight;
     private Texture texture = Texture.getTexture("buttonSquare.png");
 
     public GuiChooseLevel()
     {
-        File baseFile = new File("./res/");
-        System.out.println(baseFile.getAbsolutePath());
-        File directory = new File(baseFile, "levels");
-        File[] fList = directory.listFiles();
-        Game.getInstance().levelData.clear();
-
-        if (fList != null)
+        for (int i = 0; i < 8; i++)
         {
-            for (File file : fList)
+            URL url = Game.getInstance().getResource("levels/", "level" + i + ".txt");
+
+            try
             {
-                if (file.isFile())
+                LevelData data = LevelData.read(url);
+                if (data != null)
                 {
-                    try
-                    {
-                        LevelData data = LevelData.read(file);
-                        if (data != null)
-                        {
-                            Game.getInstance().levelData.add(data);
-                        }
-                    }
-                    catch (IOException e)
-                    {
-                        System.err.println("Failed to read level: " + file.getAbsolutePath());
-                        e.printStackTrace();
-                    }
+                    Game.getInstance().levelData.add(data);
                 }
+            }
+            catch (IOException e)
+            {
+                System.err.println("Failed to read level: " + (i + 1));
+                e.printStackTrace();
             }
         }
 
-        levelCount = Game.getInstance().levelData.size();
         this.gridWidth = 4;
         this.gridHeight = 2;
     }
@@ -83,9 +73,9 @@ public class GuiChooseLevel extends GuiScreen
                 GuiButton button = new GuiButton(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 - 200 + i * 100, Game.getInstance().windowSize.y / 2 + 100 - j * 100), new Vector2i(64, 64), String.valueOf(buttonNumber + 1), texture);
                 this.addElement(button);
                 button.identifier = buttonNumber;
-//                if (buttonNumber > Game.getInstance().unlockedLevel)
+                if (buttonNumber > Game.getInstance().unlockedLevel)
                 {
-                    button.enabled = true;
+                    button.enabled = false;
                 }
             }
         }

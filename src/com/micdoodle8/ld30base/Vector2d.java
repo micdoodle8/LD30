@@ -66,6 +66,11 @@ public class Vector2d
 	{
 		return Math.sqrt(this.x * this.x + this.y * this.y);
 	}
+
+	public double getLengthUnSqrd()
+	{
+		return this.x * this.x + this.y * this.y;
+	}
 	
 	public float floatX()
 	{

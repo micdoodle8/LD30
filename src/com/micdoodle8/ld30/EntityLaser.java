@@ -86,7 +86,7 @@ public class EntityLaser extends Entity
     @Override
     public void initEntity()
     {
-
+        this.world.setTile(this.position.toIntVec().x, this.position.toIntVec().y, 1, Tile.NULL_TILE12);
     }
 
     @Override

@@ -1,9 +1,7 @@
 package com.micdoodle8.ld30;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,9 +9,9 @@ public class LevelData
 {
     public final char[][][] charArray;
 
-    public static LevelData read(File file) throws IOException
+    public static LevelData read(URL url) throws IOException
     {
-        BufferedReader br = new BufferedReader(new FileReader(file));
+        BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
 
         String line;
         List<String> lines = new ArrayList<String>();

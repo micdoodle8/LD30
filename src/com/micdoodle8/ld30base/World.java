@@ -184,7 +184,9 @@ public class World
 
     private void addLightWithChance(double x, double y)
     {
-        if (Math.random() < 0.095)
+        float distance = getClosestDynamicLight(new Vector2d(x, y));
+
+        if (Math.random() < 0.5 * (distance / 8.0F))
         {
             for (Light li : lightList)
             {
@@ -209,6 +211,19 @@ public class World
         }
 
         return data[y][x][layer];
+    }
+
+    public float getClosestDynamicLight(Vector2d position)
+    {
+        float closest = Float.MAX_VALUE;
+
+        for (Light light : this.dynamicLightList)
+        {
+            float distance = (float)light.position.copy().sub(position).getLengthUnSqrd();
+            closest = Math.min(distance, closest);
+        }
+
+        return (float)Math.sqrt(closest);
     }
 
     private void setupWorld()
@@ -679,7 +694,7 @@ public class World
                         this.setTile(setPos.x, setPos.y, (Integer) effect.additionalData[1], (Tile) effect.additionalData[2]);
                         if (!effect.lastPressed)
                         {
-                            Game.getInstance().soundEffectButton.playAsSoundEffect(1.0F, 0.5F, false, setPos.x, setPos.y, 1.0F);
+//                            Game.getInstance().soundEffectButton.playAsSoundEffect(1.0F, 0.5F, false, setPos.x, setPos.y, 1.0F);
                             this.lightList.add((Light) effect.additionalData[3]);
                         }
                         break;
@@ -694,7 +709,7 @@ public class World
                                     if (!effect.lastPressed)
                                     {
                                         ((EntityLaser) entity).toggleActive();
-                                        Game.getInstance().soundEffectButton.playAsSoundEffect(1.0F, 0.5F, false, setPos.x, setPos.y, 1.0F);
+//                                        Game.getInstance().soundEffectButton.playAsSoundEffect(1.0F, 0.5F, false, setPos.x, setPos.y, 1.0F);
 //                                        if (((EntityLaser) entity).isActive) this.lightList.add((Light) effect.additionalData[1]);
                                     }
                                     break;
@@ -727,7 +742,7 @@ public class World
                                     if (effect.lastPressed)
                                     {
                                         ((EntityLaser) entity).toggleActive();
-                                        Game.getInstance().soundEffectButton.playAsSoundEffect(1.0F, 0.5F, false, setPos.x, setPos.y, 1.0F);
+//                                        Game.getInstance().soundEffectButton.playAsSoundEffect(1.0F, 0.5F, false, setPos.x, setPos.y, 1.0F);
 //                                        if (!((EntityLaser) entity).isActive) this.lightList.remove((Light) effect.additionalData[1]);
                                     }
                                     break;

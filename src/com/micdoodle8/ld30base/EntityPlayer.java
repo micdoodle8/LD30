@@ -35,23 +35,25 @@ public class EntityPlayer extends EntityWithLife
         world.lightList.add(this.lightSource);
         textures = new Texture[][] {
                 {
-                        Texture.getTexture("robot0.png"),
-                        Texture.getTexture("robot1.png"),
-                        Texture.getTexture("robot2.png"),
-                        Texture.getTexture("robot3.png")
+                        Texture.getTexture("walk0.png"),
+                        Texture.getTexture("walk1.png"),
+                        Texture.getTexture("walk2.png"),
+                        Texture.getTexture("walk3.png"),
+                        Texture.getTexture("walk4.png"),
+                        Texture.getTexture("walk5.png")
                 },
-                {
-                        Texture.getTexture("robot0_yel.png"),
-                        Texture.getTexture("robot1_yel.png"),
-                        Texture.getTexture("robot2_yel.png"),
-                        Texture.getTexture("robot3_yel.png")
-                },
-                {
-                        Texture.getTexture("robot0_ora.png"),
-                        Texture.getTexture("robot1_ora.png"),
-                        Texture.getTexture("robot2_ora.png"),
-                        Texture.getTexture("robot3_ora.png")
-                }
+//                {
+//                        Texture.getTexture("robot0_yel.png"),
+//                        Texture.getTexture("robot1_yel.png"),
+//                        Texture.getTexture("robot2_yel.png"),
+//                        Texture.getTexture("robot3_yel.png")
+//                },
+//                {
+//                        Texture.getTexture("robot0_ora.png"),
+//                        Texture.getTexture("robot1_ora.png"),
+//                        Texture.getTexture("robot2_ora.png"),
+//                        Texture.getTexture("robot3_ora.png")
+//                }
         };
         this.standingTexture = new Texture[] { Texture.getTexture("robot4.png"), Texture.getTexture("robot4_yel.png"), Texture.getTexture("robot4_ora.png"), Texture.getTexture("outline_yel.png"), Texture.getTexture("outline_ora.png") };
         this.jumpingTexture = new Texture[] { Texture.getTexture("robot5.png"), Texture.getTexture("robot5_yel.png"), Texture.getTexture("robot5_ora.png") };
@@ -93,7 +95,7 @@ public class EntityPlayer extends EntityWithLife
 //        GL11.glEnable(GL11.GL_TEXTURE_2D);
 //        GL11.glTranslatef(this.position.floatX(), this.position.floatY(), 0.0F);
 
-        for (int i = this.isActivePlayer() ? 0 : 1; i < 2; i++)
+        for (int i = 0; i < (this.isActivePlayer() ? 1 : 2); i++)
         {
             if (this.isActivePlayer())
             {
@@ -107,14 +109,18 @@ public class EntityPlayer extends EntityWithLife
                 }
                 else
                 {
-                    this.textures[i == 0 ? 0 : playerType][this.texture].bind();
+                    this.textures[i][this.texture].bind();
                 }
             }
             else
             {
                 if (i == 1)
                 {
-                    this.standingTexture[playerType + 2].bind();
+                    this.standingTexture[0].bind();
+                }
+                else
+                {
+                    this.standingTexture[this.playerType + 2].bind();
                 }
             }
 
@@ -122,6 +128,19 @@ public class EntityPlayer extends EntityWithLife
             int minX = facingDir == Direction.RIGHT ? 1 : 0;
             int maxX = facingDir == Direction.RIGHT ? 0 : 1;
             Tile.AIR_TILE.colorDynamic(this.position.copy().add(new Vector2d(0, this.size.y / 2)), new Vector2d(0, 0), i == 1 ? new Vector3f(0.6F, 0.6F, 0.6F) : new Vector3f(0.08F, 0.08F, 0.08F), 1.0F);
+
+            if (!this.isActivePlayer())
+            {
+                switch (this.playerType)
+                {
+                    case 1:
+                        GL11.glColor4f(1, 1, 0, 0.2F);
+                        break;
+                    case 2:
+                        GL11.glColor4f(1, 0.0F, 0, 0.2F);
+                        break;
+                }
+            }
 
             if (this.boundingBox != null)
             {
@@ -313,7 +332,7 @@ public class EntityPlayer extends EntityWithLife
         }
         else
         {
-            int count = (int)Math.floor(this.position.x * 3.5F) % this.textures.length;
+            int count = (int)Math.floor(this.position.x * 3.5F) % this.textures[0].length;
             if (Math.abs(this.motion.x) < 0.5)
             {
                 this.texture = -1;
