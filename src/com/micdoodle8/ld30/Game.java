@@ -4,24 +4,25 @@ import com.micdoodle8.ld30base.*;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector3f;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.TrueTypeFont;
+import org.newdawn.slick.openal.Audio;
+import org.newdawn.slick.openal.AudioLoader;
 import org.newdawn.slick.openal.SoundStore;
 
 import java.awt.*;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class Game extends com.micdoodle8.ld30base.Window
 {
 	public World gameWorld;
 	public Random random;
 	private static Game INSTANCE;
-	public EntityPlayer player;
+	public EntityPlayer[] players;
 	public KeyButton keyButtonW = new KeyButton(Keyboard.KEY_W);
 	public KeyButton keyButtonA = new KeyButton(Keyboard.KEY_A);
 	public KeyButton keyButtonS = new KeyButton(Keyboard.KEY_S);
@@ -40,6 +41,14 @@ public class Game extends com.micdoodle8.ld30base.Window
     public TrueTypeFont fontSourceSansProSize16;
     public Tessellator tessellator = new Tessellator();
     public int unlockedLevel = 0;
+    public int activePlayer = 0;
+    public Light mouseLight;
+    public float totalGameTime;
+    public static final float TOTAL_TRANSITION_TIME = 1000.0F;
+    public float transitionProgress = -1;
+    public int transitionState = 0;
+    public Audio[] transitionSound = new Audio[2];
+    public java.util.List<LevelData> levelData = new ArrayList<LevelData>();
 
 	public URL getResource(String name)
 	{
@@ -66,6 +75,15 @@ public class Game extends com.micdoodle8.ld30base.Window
 	private Game()
 	{
 		INSTANCE = this;
+        try
+        {
+            transitionSound[0] = AudioLoader.getAudio("OGG", getResource("tele0.ogg").openStream());
+            transitionSound[1] = AudioLoader.getAudio("OGG", getResource("tele1.ogg").openStream());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
 	}
 	
 	@Override
@@ -107,7 +125,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 //            gameWorld.worldScale = 8;
 //            gameWorld.worldTranslate = new Vector2d(80, 44);
 
-            gameWorld.addEntityToWorld(new EntityPlayer(gameWorld, new Vector2d(0, 0)));
+            gameWorld.addEntityToWorld(new EntityPlayer(1, gameWorld, new Vector2d(0, 0)));
 		}
 		
 		initOnce = true;
@@ -120,6 +138,41 @@ public class Game extends com.micdoodle8.ld30base.Window
 		{
 			deltaTicks = 0;
 		}
+
+        this.totalGameTime += deltaTicks;
+
+        if (transitionProgress >= 0)
+        {
+            this.transitionProgress += deltaTicks;
+
+            if (this.transitionProgress >= TOTAL_TRANSITION_TIME)
+            {
+                this.transitionState = (this.transitionState == 0 ? 1 : 0);
+                this.transitionProgress = -1;
+            }
+        }
+
+        if (gameWorld != null)
+        {
+            if (mouseLight != null)
+            {
+                if (this.transitionState == 0)
+                {
+                    mouseLight.position = Game.getInstance().gameWorld.screenCoordsToWorld(Mouse.getX(), Mouse.getY());
+                }
+                else
+                {
+                    mouseLight.position = Game.getInstance().gameWorld.screenCoordsToWorld(windowSize.x - Mouse.getX(), windowSize.y - Mouse.getY() - 1);
+                }
+            }
+        }
+
+        if (keyButtonSpace.isKeyDown())
+        {
+            this.activePlayer = this.activePlayer == 0 ? 1 : 0;
+            this.transitionProgress = 0;
+            transitionSound[this.transitionState].playAsSoundEffect(1.0F, 1.0F, false);
+        }
 		
 		if (!mouseClickedLast && Mouse.isButtonDown(0))
 		{
@@ -136,13 +189,13 @@ public class Game extends com.micdoodle8.ld30base.Window
             particleManager.update(deltaTicks);
             gameWorld.update(deltaTicks);
 			
-			if (this.player != null)
-			{
-				if (this.player.position.y <= 1)
-				{
-					this.startNextWorld();
-				}
-			}
+//			if (this.players != null)
+//			{
+//				if (this.player.position.y <= 1)
+//				{
+//					this.startNextWorld();
+//				}
+//			}
 		}
 		
 		SoundStore.get().poll(deltaTicks);
@@ -153,17 +206,16 @@ public class Game extends com.micdoodle8.ld30base.Window
 		}
 	}
 	
-	public void startNextWorld()
+	public boolean startNextWorld(int level)
 	{
-		double playerPosX = this.player.position.x;
-		double playerMotionY = this.player.motion.y;
-//		this.player = null;
-//		this.gameWorld = new World(new Vector2i(342, 106));
-		
-//		this.player = new EntityPlayer(gameWorld);
-//		this.player.position = new Vector2d(100, 100);
-//		this.player.motion = new Vector2d(0, playerMotionY);
-//		gameWorld.addEntityToWorld(this.player);
+        if (levelData.size() > level)
+        {
+            this.gameWorld = new World(level, Game.getInstance().levelData.get(level));
+            mouseLight = new Light(Game.getInstance().gameWorld.screenCoordsToWorld(Mouse.getX(), Mouse.getY()), 1.0F, new Vector3f(1.0F, 1.0F, 1.0F));
+            gameWorld.lightList.add(mouseLight);
+            return true;
+        }
+        return false;
 	}
 
 	@Override

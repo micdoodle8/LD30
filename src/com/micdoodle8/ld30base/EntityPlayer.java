@@ -1,8 +1,12 @@
 package com.micdoodle8.ld30base;
 
+import com.micdoodle8.ld30.ButtonEffect;
 import com.micdoodle8.ld30.Game;
+import com.micdoodle8.ld30.Light;
+import com.micdoodle8.ld30.TeleportConnection;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector3f;
 
 import java.util.List;
 
@@ -15,12 +19,17 @@ public class EntityPlayer extends EntityWithLife
     private Direction facingDir = Direction.RIGHT;
     private int texture = -1;
     private int playerType = 1;
+    private Vector2i buttonVec = null;
+    private Light lightSource;
 
-	public EntityPlayer(World world, Vector2d position)
+	public EntityPlayer(int playerType, World world, Vector2d position)
 	{
 		super(world);
+        this.playerType = playerType;
 		this.size = new Vector2d(0.9, 1.8);
         this.position = position;
+        this.lightSource = new Light(this.position.copy().add(new Vector2d(0, this.size.y)), 0.2F, new Vector3f(1, playerType == 1 ? 1 : 0.0F, 0.0F));
+        world.lightList.add(this.lightSource);
         textures = new Texture[][] {
                 {
                         Texture.getTexture("robot0.png"),
@@ -41,7 +50,7 @@ public class EntityPlayer extends EntityWithLife
                         Texture.getTexture("robot3_ora.png")
                 }
         };
-        this.standingTexture = new Texture[] { Texture.getTexture("robot4.png"), Texture.getTexture("robot4_yel.png"), Texture.getTexture("robot4_ora.png") };
+        this.standingTexture = new Texture[] { Texture.getTexture("robot4.png"), Texture.getTexture("robot4_yel.png"), Texture.getTexture("robot4_ora.png"), Texture.getTexture("outline_yel.png"), Texture.getTexture("outline_ora.png") };
         this.jumpingTexture = new Texture[] { Texture.getTexture("robot5.png"), Texture.getTexture("robot5_yel.png"), Texture.getTexture("robot5_ora.png") };
 	}
 
@@ -67,29 +76,35 @@ public class EntityPlayer extends EntityWithLife
 //        GL11.glEnable(GL11.GL_TEXTURE_2D);
 //        GL11.glTranslatef(this.position.floatX(), this.position.floatY(), 0.0F);
 
-        for (int i = 0; i < 2; i++)
+        for (int i = this.isActivePlayer() ? 0 : 1; i < 2; i++)
         {
-            if (texture == -1)
+            if (this.isActivePlayer())
             {
-                this.standingTexture[i == 0 ? 0 : playerType].bind();
-            }
-            else if (texture == -2)
-            {
-                this.jumpingTexture[i == 0 ? 0 : playerType].bind();
+                if (texture == -1)
+                {
+                    this.standingTexture[i == 0 ? 0 : playerType].bind();
+                }
+                else if (texture == -2)
+                {
+                    this.jumpingTexture[i == 0 ? 0 : playerType].bind();
+                }
+                else
+                {
+                    this.textures[i == 0 ? 0 : playerType][this.texture].bind();
+                }
             }
             else
             {
-                this.textures[i == 0 ? 0 : playerType][this.texture].bind();
+                if (i == 1)
+                {
+                    this.standingTexture[playerType + 2].bind();
+                }
             }
 
             Game.getInstance().tessellator.start(GL11.GL_QUADS);
             int minX = facingDir == Direction.RIGHT ? 1 : 0;
             int maxX = facingDir == Direction.RIGHT ? 0 : 1;
-            float distance = (float)new Vector2d(this.position.x + 0.5, this.position.y + 0.5).sub(this.world.screenCoordsToWorld(Mouse.getX(), Mouse.getY())).getLength();
-            float denom = distance + 0.1F;
-            float col = (i + 1) / (denom * denom);
-            col *= 1 / ((i == 0 ? 1 : 0.05F) / 10.0F);
-            GL11.glColor3f(col, col, col);
+            Tile.AIR_TILE.colorDynamic(this.position.copy().add(new Vector2d(0, this.size.y / 2)), new Vector2d(0, 0), i == 1 ? new Vector3f(0.6F, 0.6F, 0.6F) : new Vector3f(0.08F, 0.08F, 0.08F), 1.0F);
             Game.getInstance().tessellator.addVertexScaled(this.boundingBox.minVec.floatX() - 0.2F, this.boundingBox.minVec.floatY() - 0.4F, maxX, 1);
             Game.getInstance().tessellator.addVertexScaled(this.boundingBox.maxVec.floatX() + 0.2F, this.boundingBox.minVec.floatY() - 0.4F, minX, 1);
             Game.getInstance().tessellator.addVertexScaled(this.boundingBox.maxVec.floatX() + 0.2F, this.boundingBox.maxVec.floatY() + 0.6F, minX, 0);
@@ -118,14 +133,30 @@ public class EntityPlayer extends EntityWithLife
         GL11.glPopMatrix();
     }
 
+    public boolean isActivePlayer()
+    {
+        return this == Game.getInstance().players[Game.getInstance().activePlayer];
+    }
+
 	@Override
 	public void update(float deltaTime) 
 	{
 		super.update(deltaTime);
 
-        if (this.onGround)
+        if (this.onGround && this.isActivePlayer())
         {
-            if (Game.getInstance().keyButtonSpace.isKeyDown())
+            boolean jump = false;
+
+            if (Game.getInstance().transitionState == 1)
+            {
+                jump = Game.getInstance().keyButtonS.isKeyDown() || Game.getInstance().keyButtonDown.isKeyDown();
+            }
+            else
+            {
+                jump = Game.getInstance().keyButtonW.isKeyDown() || Game.getInstance().keyButtonUp.isKeyDown();
+            }
+
+            if (jump)
             {
                 this.motion.y = 5;
             }
@@ -135,26 +166,21 @@ public class EntityPlayer extends EntityWithLife
 
         boolean motionHandled = false;
 
-        if (Game.getInstance().keyButtonRight.isKeyPressed() || Game.getInstance().keyButtonD.isKeyPressed())
+        if (this.isActivePlayer() && Game.getInstance().transitionProgress == -1)
         {
-            if (this.facingDir != Direction.RIGHT)
+            if (Game.getInstance().keyButtonRight.isKeyPressed() || Game.getInstance().keyButtonD.isKeyPressed())
             {
-                this.facingDir = Direction.RIGHT;
+                this.facingDir = Game.getInstance().transitionState == 0 ? Direction.RIGHT : Direction.LEFT;
+                this.motion.x = -2.5 * (Game.getInstance().transitionState * 2 - 1);
+                motionHandled = true;
             }
 
-            this.motion.x = 2.5;
-            motionHandled = true;
-        }
-
-        if (Game.getInstance().keyButtonLeft.isKeyPressed() || Game.getInstance().keyButtonA.isKeyPressed())
-        {
-            if (this.facingDir != Direction.LEFT)
+            if (Game.getInstance().keyButtonLeft.isKeyPressed() || Game.getInstance().keyButtonA.isKeyPressed())
             {
-                this.facingDir = Direction.LEFT;
+                this.facingDir = Game.getInstance().transitionState == 0 ? Direction.LEFT : Direction.RIGHT;
+                this.motion.x = 2.5 * (Game.getInstance().transitionState * 2 - 1);
+                motionHandled = true;
             }
-
-            this.motion.x = -2.5;
-            motionHandled = true;
         }
 
         if (!motionHandled)
@@ -162,32 +188,54 @@ public class EntityPlayer extends EntityWithLife
             this.motion.x *= (0.9);
         }
 
-        if (Game.getInstance().keyButtonS.isKeyDown() || Game.getInstance().keyButtonDown.isKeyDown())
+        if (this.isActivePlayer())
         {
-            List<BoundingBox> boundsAround = this.world.getBoundsWithin(this.getBounds().copy().add(new Vector2d(0, -0.01)));
+            boolean b;
 
-            for (BoundingBox box : boundsAround)
+            if (Game.getInstance().transitionState == 0)
             {
-                Tile tile = world.getTile(box.minVec.toIntVec().x, box.minVec.toIntVec().y, 2);
-                if (tile == Tile.NULL_TILE13 || tile == Tile.NULL_TILE15)
-                {
-                    for (int i = 0; i < world.worldSize.x; i++)
-                    {
-                        for (int j = 0; j < world.worldSize.y; j++)
-                        {
-                            Tile tile0 = world.getTile(i, j, 2);
+                b = Game.getInstance().keyButtonS.isKeyDown() || Game.getInstance().keyButtonDown.isKeyDown();
+            }
+            else
+            {
+                b = Game.getInstance().keyButtonW.isKeyDown() || Game.getInstance().keyButtonUp.isKeyDown();
+            }
 
-                            if ((tile == tile0 || (tile == Tile.NULL_TILE13 && tile0 == Tile.NULL_TILE14) || (tile == Tile.NULL_TILE15 && tile0 == Tile.NULL_TILE16)) && i != box.minVec.toIntVec().x && j != box.minVec.toIntVec().y)
+            BoundingBox bounds = this.getBounds().copy();
+            bounds = new BoundingBox(bounds.minVec.x, bounds.minVec.y - 0.55, bounds.maxVec.x, bounds.maxVec.y + 0.55);
+
+            for (TeleportConnection connections : this.world.teleportConnectionList)
+            {
+                if (connections.playerType == this.playerType)
+                {
+                    for (int i = 0; i < connections.connections.size(); i++)
+                    {
+                        TeleportConnection.DirectionalPoint connection0 = connections.connections.get(i);
+
+                        if (connection0.direction == Direction.DOWN || b)
+                        {
+                            if (bounds.intersects(connection0.point.toDoubleVec().add(new Vector2d(0.5, 0.5))))
                             {
-                                if (tile == tile0)
+                                TeleportConnection.DirectionalPoint nextConnection;
+                                if (i == connections.connections.size() - 1)
                                 {
-                                    this.position.x = i + 0.5;
-                                    this.position.y = j + 1.1;
+                                    nextConnection = connections.connections.get(0);
                                 }
                                 else
                                 {
-                                    this.position.x = i + 0.5;
-                                    this.position.y = j - 2;
+                                    nextConnection = connections.connections.get(i + 1);
+                                }
+
+                                switch (nextConnection.direction)
+                                {
+                                    case DOWN:
+                                        this.position.x = nextConnection.point.x + 0.5;
+                                        this.position.y = nextConnection.point.y - 2;
+                                        break;
+                                    case UP:
+                                        this.position.x = nextConnection.point.x + 0.5;
+                                        this.position.y = nextConnection.point.y + 1.1;
+                                        break;
                                 }
                             }
                         }
@@ -206,6 +254,8 @@ public class EntityPlayer extends EntityWithLife
             this.motion.y = mY;
             this.motion.x = mX;
         }
+
+        this.lightSource.position = this.position.copy().add(new Vector2d(0, this.size.y));
 
         this.onGround = Math.abs(oldMotionY - motion.y) > 0.0001D;
 

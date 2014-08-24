@@ -3,7 +3,9 @@ package com.micdoodle8.ld30base;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.micdoodle8.ld30.ButtonEffect;
 import com.micdoodle8.ld30.Game;
+import com.micdoodle8.ld30.Light;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -51,35 +53,51 @@ public class Tile
         this.colored = colored;
 	}
 
-    private void colorDynamic(Vector2d mousePos, Vector2d drawPos)
+    public void colorDynamic(Vector2d drawPos, Vector2d vecPos)
     {
-        this.colorDynamic(mousePos, drawPos, new Vector3f(1, 1, 1), 1.0F);
+        this.colorDynamic(drawPos, vecPos, new Vector3f(0.01F, 0.01F, 0.01F), 1.0F);
     }
 
-    private void colorDynamic(Vector2d mousePos, Vector2d drawPos, Vector3f baseColor, float darknessMod)
+    public void colorDynamic(Vector2d drawPos, Vector2d vecPos, Vector3f baseColor, float darknessMod)
     {
-        float distance = (float)drawPos.sub(mousePos).getLength();
-        float col = 1 / ((distance + 0.1F) * (distance + 0.1F) * (distance + 0.1F));
-        col *= 1 / (darknessMod / 10.0F);
-        GL11.glColor3f(col * baseColor.x, col * baseColor.y, col * baseColor.z);
+        Vector3f color = new Vector3f(baseColor.x, baseColor.y, baseColor.z);
+        for (Light light : Game.getInstance().gameWorld.lightList)
+        {
+            if (Math.abs(light.position.x - drawPos.x) < 8 && Math.abs(light.position.y - drawPos.y) < 8)
+            {
+                float distance = (float)vecPos.copy().add(light.position).sub(drawPos).getLength() / 5.0F;
+                float col = 1 / ((distance + 0.1F) * (distance + 0.1F) * (distance + 0.1F));
+                col *= 1 / (darknessMod / 10.0F);
+                col *= light.brightness;
+                color.x += col * light.color.x * baseColor.x;
+                color.y += col * light.color.y * baseColor.y;
+                color.z += col * light.color.z * baseColor.z;
+            }
+        }
+        GL11.glColor3f(color.x, color.y, color.z);
     }
 	
-	public void draw(Vector2d drawPos, Vector2d deltaPos)
+	public void draw(Vector2d drawPos, int layer)
 	{
+        boolean drawFullLight = Game.getInstance().keyButtonB.isKeyPressed();
         boolean specialLight = false;
+        if (drawFullLight)
+        {
+            GL11.glColor3f(1, 1, 1);
+        }
         Texture tex;
-        if (colored != null && Game.getInstance().player != null)
+        if (colored != null && Game.getInstance().players != null)
         {
             tex = Texture.getTexture(colored);
             Vector3f color;
             specialLight = true;
             if (this == NULL_TILE13 || this == NULL_TILE14)
             {
-                color = new Vector3f((float)Math.sin(Game.getInstance().player.timeAlive * 3) * 0.25F + 2F, 0, 0);
+                color = new Vector3f((float)Math.sin(Game.getInstance().players[0].timeAlive * 3) * 0.25F + 2F, 0, 0);
             }
             else if (this == NULL_TILE15|| this == NULL_TILE16)
             {
-                color = new Vector3f((float)Math.sin(Game.getInstance().player.timeAlive * 3) * 0.25F + 2F, (float)Math.sin(Game.getInstance().player.timeAlive * 3) * 0.25F + 2F, 0);
+                color = new Vector3f((float)Math.sin(Game.getInstance().players[0].timeAlive * 3) * 0.25F + 2F, (float)Math.sin(Game.getInstance().players[0].timeAlive * 3) * 0.25F + 2F, 0);
             }
             else
             {
@@ -88,13 +106,13 @@ public class Tile
             }
             tex.bind();
             Game.getInstance().tessellator.start(GL11.GL_QUADS);
-            this.colorDynamic(deltaPos, new Vector2d(0.5, 0.5), color, specialLight ? 0.05F : 1.0F);
+            if (!drawFullLight) this.colorDynamic(drawPos, new Vector2d(0.5, 0.5), color, specialLight ? 0.05F : 1.0F);
             Game.getInstance().tessellator.addVertexScaled(0.0F, 0.0F, 0, 1);
-            this.colorDynamic(deltaPos, new Vector2d(-0.5, 0.5), color, specialLight ? 0.05F : 1.0F);
+            if (!drawFullLight) this.colorDynamic(drawPos, new Vector2d(-0.5, 0.5), color, specialLight ? 0.05F : 1.0F);
             Game.getInstance().tessellator.addVertexScaled(1.0F, 0.0F, 1, 1);
-            this.colorDynamic(deltaPos, new Vector2d(-0.5, -0.5), color, specialLight ? 0.05F : 1.0F);
+            if (!drawFullLight) this.colorDynamic(drawPos, new Vector2d(-0.5, -0.5), color, specialLight ? 0.05F : 1.0F);
             Game.getInstance().tessellator.addVertexScaled(1.0F, 1.0F, 1, 0);
-            this.colorDynamic(deltaPos, new Vector2d(0.5, -0.5), color, specialLight ? 0.05F : 1.0F);
+            if (!drawFullLight) this.colorDynamic(drawPos, new Vector2d(0.5, -0.5), color, specialLight ? 0.05F : 1.0F);
             Game.getInstance().tessellator.addVertexScaled(0.0F, 1.0F, 0, 0);
             Game.getInstance().tessellator.draw();
             GL11.glEnd();
@@ -104,27 +122,48 @@ public class Tile
         {
             tex = Texture.getTexture(textureName);
 
-            if ((this == NULL_TILE18 || this == NULL_TILE19) && Game.getInstance().player != null && Game.getInstance().player.boundingBox.intersects(new BoundingBox(drawPos.copy(), drawPos.copy().add(new Vector2d(0.5, 0.6)))))
+            for (ButtonEffect effect : Game.getInstance().gameWorld.buttonEffectList)
             {
-                if (this == NULL_TILE18)
+                if (layer == effect.directionalPoint.layer)
                 {
-                    tex = Texture.getTexture("button_down_yel.png");
-                }
-                else
-                {
-                    tex = Texture.getTexture("button_down_ora.png");
+                    if (effect.directionalPoint.point.x == drawPos.x - 0.5 && effect.directionalPoint.point.y == drawPos.y - 0.5)
+                    {
+                        if (effect.lastPressed)
+                        {
+                            if (this == NULL_TILE18)
+                            {
+                                tex = Texture.getTexture("button_down_yel.png");
+                            }
+                            else
+                            {
+                                tex = Texture.getTexture("button_down_ora.png");
+                            }
+                        }
+                    }
                 }
             }
 
+//            if ((this == NULL_TILE18 || this == NULL_TILE19) && Game.getInstance().players[0] != null && Game.getInstance().player.boundingBox.intersects(new BoundingBox(drawPos.copy(), drawPos.copy().add(new Vector2d(0.5, 0.6)))))
+//            {
+//                if (this == NULL_TILE18)
+//                {
+//                    tex = Texture.getTexture("button_down_yel.png");
+//                }
+//                else
+//                {
+//                    tex = Texture.getTexture("button_down_ora.png");
+//                }
+//            }
+
             tex.bind();
             Game.getInstance().tessellator.start(GL11.GL_QUADS);
-            this.colorDynamic(deltaPos, new Vector2d(0.5, 0.5));
+            if (!drawFullLight) this.colorDynamic(drawPos, new Vector2d(0.5, 0.5));
             Game.getInstance().tessellator.addVertexScaled(0.0F, 0.0F, 0, 1);
-            this.colorDynamic(deltaPos, new Vector2d(-0.5, 0.5));
+            if (!drawFullLight) this.colorDynamic(drawPos, new Vector2d(-0.5, 0.5));
             Game.getInstance().tessellator.addVertexScaled(1.0F, 0.0F, 1, 1);
-            this.colorDynamic(deltaPos, new Vector2d(-0.5, -0.5));
+            if (!drawFullLight) this.colorDynamic(drawPos, new Vector2d(-0.5, -0.5));
             Game.getInstance().tessellator.addVertexScaled(1.0F, 1.0F, 1, 0);
-            this.colorDynamic(deltaPos, new Vector2d(0.5, -0.5));
+            if (!drawFullLight) this.colorDynamic(drawPos, new Vector2d(0.5, -0.5));
             Game.getInstance().tessellator.addVertexScaled(0.0F, 1.0F, 0, 0);
             Game.getInstance().tessellator.draw();
             GL11.glEnd();

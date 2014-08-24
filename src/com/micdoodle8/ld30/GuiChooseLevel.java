@@ -13,7 +13,6 @@ public class GuiChooseLevel extends GuiScreen
     private int gridWidth;
     private int gridHeight;
     private Texture texture = Texture.getTexture("buttonSquare.png");
-    private List<LevelData> levelData = new ArrayList<LevelData>();
 
     public GuiChooseLevel()
     {
@@ -33,7 +32,7 @@ public class GuiChooseLevel extends GuiScreen
                         LevelData data = LevelData.read(file);
                         if (data != null)
                         {
-                            levelData.add(data);
+                            Game.getInstance().levelData.add(data);
                         }
                     }
                     catch (IOException e)
@@ -45,7 +44,7 @@ public class GuiChooseLevel extends GuiScreen
             }
         }
 
-        levelCount = levelData.size();
+        levelCount = Game.getInstance().levelData.size();
         this.gridWidth = 4;
         this.gridHeight = 4;
     }
@@ -53,13 +52,15 @@ public class GuiChooseLevel extends GuiScreen
     @Override
     protected void onElementClicked(GuiElement element)
     {
-        if (element instanceof GuiButton && ((GuiButton) element).identifier < this.gridWidth * this.gridHeight)
+        if (element instanceof GuiButton)
         {
-            Game.getInstance().gameWorld = new World(this.levelData.get(((GuiButton) element).identifier));
-            Game.getInstance().gameWorld.worldScale = 40;
-            Game.getInstance().player = new EntityPlayer(Game.getInstance().gameWorld, new Vector2d(1.5, 3));
-            Game.getInstance().gameWorld.addEntityToWorld(Game.getInstance().player);
-            Game.getInstance().setGuiScreen(new GuiGame());
+            int id = ((GuiButton) element).identifier;
+
+            if (id < this.gridWidth * this.gridHeight)
+            {
+                Game.getInstance().startNextWorld(id);
+                Game.getInstance().setGuiScreen(new GuiGame());
+            }
         }
     }
 
@@ -75,9 +76,9 @@ public class GuiChooseLevel extends GuiScreen
                 GuiButton button = new GuiButton(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 - 200 + i * 100, Game.getInstance().windowSize.y / 2 + 200 - j * 100), new Vector2i(64, 64), String.valueOf(buttonNumber + 1), texture);
                 this.addElement(button);
                 button.identifier = buttonNumber;
-                if (buttonNumber > Game.getInstance().unlockedLevel)
+//                if (buttonNumber > Game.getInstance().unlockedLevel)
                 {
-                    button.enabled = false;
+                    button.enabled = true;
                 }
             }
         }

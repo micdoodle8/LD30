@@ -5,6 +5,11 @@ public class BoundingBox
 	public Vector2d minVec;
 	public Vector2d maxVec;
 	
+	public BoundingBox(double x0, double y0, double x1, double y1)
+	{
+        this(new Vector2d(x0, y0), new Vector2d(x1, y1));
+    }
+
 	public BoundingBox(Vector2d minVec, Vector2d maxVec)
 	{
 		this.minVec = minVec;
@@ -103,6 +108,12 @@ public class BoundingBox
 	{
 		return otherBox.maxVec.y > this.minVec.y && otherBox.minVec.y < this.maxVec.y &&
 				otherBox.maxVec.x > this.minVec.x && otherBox.minVec.x < this.maxVec.x;
+	}
+
+	public boolean intersects(Vector2d point)
+	{
+		return point.y > this.minVec.y && point.y < this.maxVec.y &&
+                point.x > this.minVec.x && point.x < this.maxVec.x;
 	}
 	
 	public boolean equals(Object other)
