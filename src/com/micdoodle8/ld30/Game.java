@@ -153,6 +153,12 @@ public class Game extends com.micdoodle8.ld30base.Window
 		initOnce = true;
 	}
 
+    public void setTransitionState(int state)
+    {
+        this.transitionState = state;
+        this.activePlayer = state;
+    }
+
     public void saveLevelProgress()
     {
         File file = new File(".");
@@ -239,7 +245,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 
             if (this.transitionProgress >= TOTAL_TRANSITION_TIME)
             {
-                this.transitionState = (this.transitionState == 0 ? 1 : 0);
+                this.setTransitionState(this.transitionState == 0 ? 1 : 0);
                 this.transitionProgress = -1;
             }
         }
@@ -263,7 +269,7 @@ public class Game extends com.micdoodle8.ld30base.Window
         {
             if (this.transitionProgress < 0)
             {
-                this.activePlayer = this.activePlayer == 0 ? 1 : 0;
+                this.setTransitionState(this.transitionState);
                 this.transitionProgress = 0;
                 transitionSound[this.transitionState].playAsSoundEffect(1.0F, 1.0F, false);
             }
@@ -307,7 +313,7 @@ public class Game extends com.micdoodle8.ld30base.Window
         this.saveLevelProgress();
         if (level < levelData.size())
         {
-            this.transitionState = 0;
+            this.setTransitionState(0);
             this.gameWorld = new World(level, Game.getInstance().levelData.get(level));
             mouseLight = new Light(Game.getInstance().gameWorld.screenCoordsToWorld(Mouse.getX(), Mouse.getY()), 1.0F, Game.getInstance().transitionState == 0 ? new Vector3f(1, 0, 0.8F) : new Vector3f(0.0F, 0.8F, 1.0F));
             gameWorld.lightList.add(mouseLight);

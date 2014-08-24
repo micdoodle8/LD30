@@ -59,7 +59,7 @@ public class GuiMainMenu extends GuiScreen
         float red = (float)Math.sin(frequency * totalTicks / 3000.0D + 2 + phase) * width + center;
         float green = (float)Math.sin(frequency * totalTicks / 3000.0D + 0 + phase) * width + center;
         float blue = (float)Math.sin(frequency * totalTicks / 3000.0D + 4 + phase) * width + center;
-        GL11.glColor3f(red / 2550.0F, green / 2550.0F, blue / 2550.0F);
+        GL11.glColor3f(red / 1550.0F, green / 1550.0F, blue / 1550.0F);
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		GL11.glBegin(GL11.GL_QUADS);	
 		GL11.glTexCoord2f(0, 0);

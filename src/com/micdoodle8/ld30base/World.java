@@ -73,27 +73,27 @@ public class World
 
                 if (charRight != 'S' && charLeft != 'S' && charAbove != 'S' && charBelow != 'S')
                 {
-                    this.addLightWithChance(x + 1, y);
+                    this.addLightWithChance(x + 0.5, y + 0.5);
                     return Tile.charTileMap.get('F');
                 }
                 else if (charRight == 'S' && charLeft != 'S' && charAbove != 'S' && charBelow != 'S')
                 {
-                    this.addLightWithChance(x + 1, y);
+                    this.addLightWithChance(x, y + 0.5);
                     return Tile.charTileMap.get('G');
                 }
                 else if (charRight != 'S' && charLeft == 'S' && charAbove != 'S' && charBelow != 'S')
                 {
-                    this.addLightWithChance(x + 1, y);
+                    this.addLightWithChance(x + 1, y + 0.5);
                     return Tile.charTileMap.get('H');
                 }
                 else if (charRight != 'S' && charLeft != 'S' && charAbove == 'S' && charBelow != 'S')
                 {
-                    this.addLightWithChance(x + 1, y);
+                    this.addLightWithChance(x + 0.5, y);
                     return Tile.charTileMap.get('J');
                 }
                 else if (charRight != 'S' && charLeft != 'S' && charAbove != 'S' && charBelow == 'S')
                 {
-                    this.addLightWithChance(x + 1, y);
+                    this.addLightWithChance(x + 0.5, y + 1);
                     return Tile.charTileMap.get('I');
                 }
                 else if (charRight == 'S' && charLeft == 'S' && charAbove != 'S' && charBelow != 'S')
@@ -295,6 +295,11 @@ public class World
                 Game.getInstance().players[1] = new EntityPlayer(2, this, new Vector2d(1.5, 15));
                 this.addEntityToWorld(Game.getInstance().players[0]);
                 this.addEntityToWorld(Game.getInstance().players[1]);
+
+                Light light = new Light(new Vector2d(28, 11), 1.0F, Game.getInstance().transitionState == 0 ? new Vector3f(1, 0, 0.8F) : new Vector3f(0.0F, 0.8F, 1.0F));
+                this.dynamicLightList.add(light);
+                this.lightList.add(light);
+                // 28, 11
                 break;
             case 4:
                 teleportConnectionList.add(new TeleportConnection(1, new TeleportConnection.DirectionalPoint(new Vector2i(5, 0), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(4, 2), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(3, 4), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(4, 6), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(3, 8), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(4, 10), Direction.UP)));
@@ -388,11 +393,6 @@ public class World
                 this.addEntityToWorld(Game.getInstance().players[1]);
                 break;
             case 7:
-//                buttonEffectList.add(new ButtonEffect(1, new TeleportConnection.DirectionalPoint(new Vector2i(7, 13), Direction.UP), ButtonEffect.ButtonEffectType.OPEN_BLOCK, new Object[] { new Vector2i(6, 13), 1, Tile.AIR_TILE, new Light(new Vector2d(6, 13), 1.0F, new Vector3f(0, 1, 0)) }, ButtonEffect.ButtonEffectType.NONE, new Object[] {  }));
-//                buttonEffectList.add(new ButtonEffect(1, new TeleportConnection.DirectionalPoint(new Vector2i(7, 13), Direction.UP), ButtonEffect.ButtonEffectType.OPEN_BLOCK, new Object[] { new Vector2i(6, 14), 1, Tile.AIR_TILE, new Light(new Vector2d(6, 14), 1.0F, new Vector3f(0, 1, 0)) }, ButtonEffect.ButtonEffectType.NONE, new Object[] {  }));
-//                buttonEffectList.add(new ButtonEffect(1, new TeleportConnection.DirectionalPoint(new Vector2i(7, 13), Direction.UP), ButtonEffect.ButtonEffectType.OPEN_BLOCK, new Object[] { new Vector2i(3, 0), 1, Tile.AIR_TILE, new Light(new Vector2d(3, 0), 1.0F, new Vector3f(0, 1, 0)) }, ButtonEffect.ButtonEffectType.NONE, new Object[] {  }));
-//                buttonEffectList.add(new ButtonEffect(1, new TeleportConnection.DirectionalPoint(new Vector2i(7, 13), Direction.UP), ButtonEffect.ButtonEffectType.OPEN_BLOCK, new Object[] { new Vector2i(4, 0), 1, Tile.AIR_TILE, new Light(new Vector2d(4, 0), 1.0F, new Vector3f(0, 1, 0)) }, ButtonEffect.ButtonEffectType.NONE, new Object[] {  }));
-
                 teleportConnectionList.add(new TeleportConnection(1, new TeleportConnection.DirectionalPoint(new Vector2i(14, 14), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(16, 4), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(12, 8), Direction.UP)));
                 teleportConnectionList.add(new TeleportConnection(1, new TeleportConnection.DirectionalPoint(new Vector2i(4, 0), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(26, 0), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(23, 11), Direction.UP)));
                 teleportConnectionList.add(new TeleportConnection(2, new TeleportConnection.DirectionalPoint(new Vector2i(17, 14), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(15, 4), Direction.UP), new TeleportConnection.DirectionalPoint(new Vector2i(20, 2), Direction.UP)));

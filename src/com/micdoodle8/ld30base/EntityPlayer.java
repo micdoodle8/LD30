@@ -304,8 +304,8 @@ public class EntityPlayer extends EntityWithLife
         double oldMotionY = this.motion.y;
         for (BoundingBox box : boundsAround)
         {
-            double mY = box.calcYOffset(this.getBounds(), this.motion.y);
-            double mX = box.calcXOffset(this.getBounds(), this.motion.x);
+            double mY = box.calcYOffset(this.getBounds(), this.motion.y * deltaTime) / deltaTime;
+            double mX = box.calcXOffset(this.getBounds(), this.motion.x * deltaTime) / deltaTime;
             this.motion.y = mY;
             this.motion.x = mX;
         }
