@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 
 public class Game extends com.micdoodle8.ld30base.Window
 {
@@ -33,24 +34,32 @@ public class Game extends com.micdoodle8.ld30base.Window
 	public KeyButton keyButtonLeft = new KeyButton(Keyboard.KEY_LEFT);
 	public KeyButton keyButtonRight = new KeyButton(Keyboard.KEY_RIGHT);
     public KeyButton keyButtonSpace = new KeyButton(Keyboard.KEY_SPACE);
+    public KeyButton keyButtonEsc = new KeyButton(Keyboard.KEY_ESCAPE);
 	public ParticleManager particleManager = new ParticleManager();
 	public Map<TrueTypeFont, Integer> fontTextures = new HashMap<TrueTypeFont, Integer>();
 	public boolean mouseClickedLast = false;
 	private boolean initOnce = false;
     public TrueTypeFont fontSourceSansProSize24;
     public TrueTypeFont fontSourceSansProSize16;
+    public TrueTypeFont fontSourceSansProSize32;
     public Tessellator tessellator = new Tessellator();
     public int unlockedLevel = 0;
     public int activePlayer = 0;
     public Light mouseLight;
     public float totalGameTime;
-    public static final float TOTAL_TRANSITION_TIME = 1000.0F;
+    public static final float TOTAL_TRANSITION_TIME = 1100.0F;
     public float transitionProgress = -1;
     public int transitionState = 0;
     public Audio[] transitionSound = new Audio[2];
+    public Audio soundEffectWalk;
+    public Audio soundEffectButton;
+    public Audio soundEffectZap;
+    public Audio musicMain;
+    public double musicCooldown;
     public java.util.List<LevelData> levelData = new ArrayList<LevelData>();
+    public boolean paused = false;
 
-	public URL getResource(String name)
+    public URL getResource(String name)
 	{
         try
         {
@@ -79,6 +88,10 @@ public class Game extends com.micdoodle8.ld30base.Window
         {
             transitionSound[0] = AudioLoader.getAudio("OGG", getResource("tele0.ogg").openStream());
             transitionSound[1] = AudioLoader.getAudio("OGG", getResource("tele1.ogg").openStream());
+            soundEffectWalk = AudioLoader.getAudio("OGG", getResource("walk.ogg").openStream());
+            soundEffectButton = AudioLoader.getAudio("WAV", getResource("button.wav").openStream());
+            soundEffectZap = AudioLoader.getAudio("OGG", getResource("zap.ogg").openStream());
+            musicMain = AudioLoader.getStreamingAudio("OGG", getResource("music.ogg").openConnection().getURL());
         }
         catch (Exception e)
         {
@@ -101,11 +114,14 @@ public class Game extends com.micdoodle8.ld30base.Window
                 fontSourceSansProSize24 = new TrueTypeFont(awtFont, false);
                 awtFont = awtFont.deriveFont(16.0F);
                 fontSourceSansProSize16 = new TrueTypeFont(awtFont, false);
+                awtFont = awtFont.deriveFont(32.0F);
+                fontSourceSansProSize32 = new TrueTypeFont(awtFont, false);
 
                 Field f = fontSourceSansProSize24.getClass().getDeclaredField("fontTexture");
                 f.setAccessible(true);
-                fontTextures.put(fontSourceSansProSize24, ((org.newdawn.slick.opengl.Texture)f.get(fontSourceSansProSize24)).getTextureID());
+                fontTextures.put(fontSourceSansProSize24, ((org.newdawn.slick.opengl.Texture) f.get(fontSourceSansProSize24)).getTextureID());
                 fontTextures.put(fontSourceSansProSize16, ((org.newdawn.slick.opengl.Texture)f.get(fontSourceSansProSize16)).getTextureID());
+                fontTextures.put(fontSourceSansProSize32, ((org.newdawn.slick.opengl.Texture)f.get(fontSourceSansProSize32)).getTextureID());
 			}
 			catch (Exception e)
 			{
@@ -141,9 +157,35 @@ public class Game extends com.micdoodle8.ld30base.Window
 
         this.totalGameTime += deltaTicks;
 
+        if (musicCooldown <= 0)
+        {
+//            this.musicMain.playAsMusic(1.0F, 1.0F, true);
+            this.musicCooldown = 2;
+        }
+
+        if (Game.getInstance().keyButtonEsc.isKeyDown())
+        {
+            this.paused = !this.paused;
+
+            if (this.currentScreen instanceof GuiGame)
+            {
+                this.currentScreen.init();
+            }
+        }
+
         if (transitionProgress >= 0)
         {
             this.transitionProgress += deltaTicks;
+
+            if (this.transitionProgress < TOTAL_TRANSITION_TIME / 4.0F)
+            {
+                int transitionStateTemp = (this.transitionState == 0 ? 0 : 1);
+
+                for (Light light : gameWorld.dynamicLightList)
+                {
+                    light.color = transitionStateTemp == 0 ? new Vector3f(0.0F, 0.8F, 1.0F) : new Vector3f(1, 0, 0.8F);
+                }
+            }
 
             if (this.transitionProgress >= TOTAL_TRANSITION_TIME)
             {
@@ -152,7 +194,7 @@ public class Game extends com.micdoodle8.ld30base.Window
             }
         }
 
-        if (gameWorld != null)
+        if (gameWorld != null && !paused)
         {
             if (mouseLight != null)
             {
@@ -167,11 +209,14 @@ public class Game extends com.micdoodle8.ld30base.Window
             }
         }
 
-        if (keyButtonSpace.isKeyDown())
+        if (!paused && keyButtonSpace.isKeyDown())
         {
-            this.activePlayer = this.activePlayer == 0 ? 1 : 0;
-            this.transitionProgress = 0;
-            transitionSound[this.transitionState].playAsSoundEffect(1.0F, 1.0F, false);
+            if (this.transitionProgress < 0)
+            {
+                this.activePlayer = this.activePlayer == 0 ? 1 : 0;
+                this.transitionProgress = 0;
+                transitionSound[this.transitionState].playAsSoundEffect(1.0F, 1.0F, false);
+            }
         }
 		
 		if (!mouseClickedLast && Mouse.isButtonDown(0))
@@ -184,7 +229,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 		
 		mouseClickedLast = Mouse.isButtonDown(0);
 		
-		if (currentScreen instanceof GuiGame)
+		if (!paused && currentScreen instanceof GuiGame)
 		{
             particleManager.update(deltaTicks);
             gameWorld.update(deltaTicks);
@@ -208,12 +253,19 @@ public class Game extends com.micdoodle8.ld30base.Window
 	
 	public boolean startNextWorld(int level)
 	{
-        if (levelData.size() > level)
+        if (level < levelData.size())
         {
+            this.transitionState = 0;
             this.gameWorld = new World(level, Game.getInstance().levelData.get(level));
-            mouseLight = new Light(Game.getInstance().gameWorld.screenCoordsToWorld(Mouse.getX(), Mouse.getY()), 1.0F, new Vector3f(1.0F, 1.0F, 1.0F));
+            mouseLight = new Light(Game.getInstance().gameWorld.screenCoordsToWorld(Mouse.getX(), Mouse.getY()), 1.0F, Game.getInstance().transitionState == 0 ? new Vector3f(1, 0, 0.8F) : new Vector3f(0.0F, 0.8F, 1.0F));
             gameWorld.lightList.add(mouseLight);
+            gameWorld.dynamicLightList.add(mouseLight);
+            this.setGuiScreen(new GuiGame());
             return true;
+        }
+        else
+        {
+            this.setGuiScreen(new GuiOutro());
         }
         return false;
 	}
@@ -257,6 +309,48 @@ public class Game extends com.micdoodle8.ld30base.Window
 	{
 		return new Vector2i(1280, 720);
 	}
+
+    public int drawTextSplit(TrueTypeFont font, Vector2i position, String text, Color color, int splitWidth)
+    {
+        String[] split = text.split(" ");
+        int i = 0;
+        int j = 0;
+        int width = 0;
+        List<String> postSplit = new ArrayList<String>();
+
+        while (i < split.length)
+        {
+            String str = split[i] + " ";
+            int temp = font.getWidth(str);
+
+            if (width + temp > splitWidth)
+            {
+                j++;
+                width = 0;
+            }
+            else
+            {
+                width += temp;
+                if (j == postSplit.size())
+                {
+                    postSplit.add(str);
+                }
+                else
+                {
+                    postSplit.set(j, postSplit.get(j).concat(str));
+                }
+
+                i++;
+            }
+        }
+
+        for (String str : postSplit)
+        {
+            drawText(font, position.copy().add(new Vector2i(-font.getWidth(str) / 2, -postSplit.indexOf(str) * (font.getHeight() + 5))), str, color);
+        }
+
+        return postSplit.size();
+    }
 	
 	public void drawText(TrueTypeFont font, Vector2i position, String text, Color color)
 	{

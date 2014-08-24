@@ -187,7 +187,7 @@ public abstract class Window
 
         GL11.glMatrixMode(GL11.GL_PROJECTION);
         GL11.glLoadIdentity();
-        GL11.glOrtho(0, x, 0, y, 1, -1);
+        GL11.glOrtho(0, x, 0, y, x, -x);
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
     }
 	

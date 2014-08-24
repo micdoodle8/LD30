@@ -5,6 +5,7 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
+import org.newdawn.slick.TrueTypeFont;
 
 
 public class GuiButton extends GuiElement
@@ -12,12 +13,12 @@ public class GuiButton extends GuiElement
 	public String text;
 	public static final Texture buttonTexture = Texture.getTexture("button2.png");
 	public boolean hover = false;
-    private Font font = null;
+    private TrueTypeFont font = null;
     private final Texture texture;
     public boolean enabled = true;
     public int identifier = -1;
-	
-	public GuiButton(Font font, Vector2i position, Vector2i size, String text, Texture texture)
+
+	public GuiButton(TrueTypeFont font, Vector2i position, Vector2i size, String text, Texture texture)
 	{
         super(position, size);
         this.font = font;
@@ -25,7 +26,7 @@ public class GuiButton extends GuiElement
         this.texture = texture;
     }
 
-	public GuiButton(Font font, Vector2i position, Vector2i size, String text)
+	public GuiButton(TrueTypeFont font, Vector2i position, Vector2i size, String text)
 	{
         this(font, position, size, text, buttonTexture);
 	}
@@ -47,17 +48,17 @@ public class GuiButton extends GuiElement
 	}
 
 	@Override
-	public void init() 
+	public void init()
 	{
-		
+
 	}
 
 	@Override
-	public void draw() 
+	public void draw()
 	{
 		GL11.glPushMatrix();
 		GL11.glTranslatef(this.position.x, this.position.y, 0);
-		
+
 		if (hover)
 		{
 			GL11.glColor3f(0.8F, 0.8F, 0.8F);
@@ -71,11 +72,11 @@ public class GuiButton extends GuiElement
         {
             GL11.glColor3f(0.6F, 0.6F, 0.6F);
         }
-		
+
 		this.texture.bind();
 		GL11.glBegin(GL11.GL_QUADS);
 		float sizeX = (float) (this.size.x);
-		float sizeY = (float) (this.size.y);		
+		float sizeY = (float) (this.size.y);
 		GL11.glTexCoord2f(0, 0);
 		GL11.glNormal3f(0, 0, 1);
 		GL11.glVertex2f(-sizeX / 2.0F, sizeY / 2.0F);
@@ -86,11 +87,11 @@ public class GuiButton extends GuiElement
 		GL11.glTexCoord2f(0, 1);
 		GL11.glVertex2f(-sizeX / 2.0F, -sizeY / 2.0F);
 		GL11.glEnd();
-		
+
 		GL11.glPopMatrix();
-		
-		Vector2i pos2 = this.position.copy().add(new Vector2i(this.font.getWidth(text) / - 2, -13));
-		Game.getInstance().drawText(Game.getInstance().fontSourceSansProSize24, pos2, text, Color.white);
+
+		Vector2i pos2 = this.position.copy().add(new Vector2i(this.font.getWidth(text) / - 2, -this.font.getHeight() / 2));
+		Game.getInstance().drawText(this.font, pos2, text, Color.white);
 	}
 
     @Override

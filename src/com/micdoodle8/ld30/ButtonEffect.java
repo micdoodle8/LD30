@@ -6,7 +6,8 @@ public class ButtonEffect
     {
         NONE,
         OPEN_BLOCK,
-        CLOSE_BLOCK
+        CLOSE_BLOCK,
+        TOGGLE_BUTTON
     }
 
     public int playerType;

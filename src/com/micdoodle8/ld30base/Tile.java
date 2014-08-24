@@ -32,8 +32,16 @@ public class Tile
     public static Tile NULL_TILE15 = new Tile('/', "tileUp.png", "tileUp_col.png");
     public static Tile NULL_TILE16 = new Tile('?', "tileDown.png", "tileDown_col.png");
     public static Tile NULL_TILE17 = new Tile('O', "solidBack.png");
-    public static Tile NULL_TILE18 = new Tile('T', "button_up_yel.png");
-    public static Tile NULL_TILE19 = new Tile('U', "button_up_ora.png");
+    public static Tile NULL_TILE18 = new Tile('T', "button_up_yel.png", "button_up_yel.png");
+    public static Tile NULL_TILE19 = new Tile('U', "button_up_ora.png", "button_up_ora.png");
+    public static Tile NULL_TILE20 = new Tile('R', "coil.png");
+    public static Tile NULL_TILE21 = new Tile('F', "full.png");
+    public static Tile NULL_TILE22 = new Tile('G', "pointLeft.png");
+    public static Tile NULL_TILE23 = new Tile('H', "pointRight.png");
+    public static Tile NULL_TILE24 = new Tile('I', "pointUp.png");
+    public static Tile NULL_TILE25 = new Tile('J', "pointDown.png");
+    public static Tile NULL_TILE26 = new Tile('K', "tubeHoriz.png");
+    public static Tile NULL_TILE27 = new Tile('L', "tubeVert.png");
 
 	public String textureName;
     public char identifier;
@@ -69,6 +77,7 @@ public class Tile
                 float col = 1 / ((distance + 0.1F) * (distance + 0.1F) * (distance + 0.1F));
                 col *= 1 / (darknessMod / 10.0F);
                 col *= light.brightness;
+                col += Math.sin(Game.getInstance().totalGameTime / 1000.0F + light.flickerPhase) * Math.cos(Game.getInstance().totalGameTime / 500.0F + light.flickerPhase0) * light.flicker;
                 color.x += col * light.color.x * baseColor.x;
                 color.y += col * light.color.y * baseColor.y;
                 color.z += col * light.color.z * baseColor.z;
@@ -76,6 +85,10 @@ public class Tile
         }
         GL11.glColor3f(color.x, color.y, color.z);
     }
+
+    public void update(float deltaTicks) {}
+
+    public boolean isAdvanced() { return false; }
 	
 	public void draw(Vector2d drawPos, int layer)
 	{
@@ -98,6 +111,14 @@ public class Tile
             else if (this == NULL_TILE15|| this == NULL_TILE16)
             {
                 color = new Vector3f((float)Math.sin(Game.getInstance().players[0].timeAlive * 3) * 0.25F + 2F, (float)Math.sin(Game.getInstance().players[0].timeAlive * 3) * 0.25F + 2F, 0);
+            }
+            else if (this == NULL_TILE18)
+            {
+                color = new Vector3f((float)Math.sin(Game.getInstance().players[0].timeAlive * 3) * 0.25F + 2F, (float)Math.sin(Game.getInstance().players[0].timeAlive * 3) * 0.25F + 2F, 0);
+            }
+            else if (this == NULL_TILE19)
+            {
+                color = new Vector3f((float)Math.sin(Game.getInstance().players[0].timeAlive * 3) * 0.25F + 2F, 0, 0);
             }
             else
             {
@@ -175,6 +196,10 @@ public class Tile
         if (this == NULL_TILE18 || this == NULL_TILE19)
         {
             return new BoundingBox(new Vector2d(x, y), new Vector2d(x + 1, y));
+        }
+        if (this == NULL_TILE20)
+        {
+            return new BoundingBox(new Vector2d(x, y), new Vector2d(x + 1, y + 0.1));
         }
 		return new BoundingBox(new Vector2i(x, y), new Vector2i(x + 1, y + 1));
 	}

@@ -20,6 +20,7 @@ public class GuiChooseLevel extends GuiScreen
         System.out.println(baseFile.getAbsolutePath());
         File directory = new File(baseFile, "levels");
         File[] fList = directory.listFiles();
+        Game.getInstance().levelData.clear();
 
         if (fList != null)
         {
@@ -46,7 +47,7 @@ public class GuiChooseLevel extends GuiScreen
 
         levelCount = Game.getInstance().levelData.size();
         this.gridWidth = 4;
-        this.gridHeight = 4;
+        this.gridHeight = 2;
     }
 
     @Override
@@ -58,8 +59,14 @@ public class GuiChooseLevel extends GuiScreen
 
             if (id < this.gridWidth * this.gridHeight)
             {
-                Game.getInstance().startNextWorld(id);
-                Game.getInstance().setGuiScreen(new GuiGame());
+                if (id == 0)
+                {
+                    Game.getInstance().setGuiScreen(new GuiIntro());
+                }
+                else
+                {
+                    Game.getInstance().startNextWorld(id);
+                }
             }
         }
     }
@@ -73,7 +80,7 @@ public class GuiChooseLevel extends GuiScreen
             for (int j = 0; j < this.gridHeight; j++)
             {
                 int buttonNumber = j * gridWidth + i;
-                GuiButton button = new GuiButton(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 - 200 + i * 100, Game.getInstance().windowSize.y / 2 + 200 - j * 100), new Vector2i(64, 64), String.valueOf(buttonNumber + 1), texture);
+                GuiButton button = new GuiButton(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 - 200 + i * 100, Game.getInstance().windowSize.y / 2 + 100 - j * 100), new Vector2i(64, 64), String.valueOf(buttonNumber + 1), texture);
                 this.addElement(button);
                 button.identifier = buttonNumber;
 //                if (buttonNumber > Game.getInstance().unlockedLevel)

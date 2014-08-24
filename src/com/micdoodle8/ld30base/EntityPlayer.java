@@ -8,6 +8,7 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -21,12 +22,14 @@ public class EntityPlayer extends EntityWithLife
     private int playerType = 1;
     private Vector2i buttonVec = null;
     private Light lightSource;
+    private double soundEffectWalkCooldown = 0.0F;
+    private double zapSoundCooldown;
 
 	public EntityPlayer(int playerType, World world, Vector2d position)
 	{
 		super(world);
         this.playerType = playerType;
-		this.size = new Vector2d(0.9, 1.8);
+		this.size = new Vector2d(0.4, 1.8);
         this.position = position;
         this.lightSource = new Light(this.position.copy().add(new Vector2d(0, this.size.y)), 0.2F, new Vector3f(1, playerType == 1 ? 1 : 0.0F, 0.0F));
         world.lightList.add(this.lightSource);
@@ -53,6 +56,20 @@ public class EntityPlayer extends EntityWithLife
         this.standingTexture = new Texture[] { Texture.getTexture("robot4.png"), Texture.getTexture("robot4_yel.png"), Texture.getTexture("robot4_ora.png"), Texture.getTexture("outline_yel.png"), Texture.getTexture("outline_ora.png") };
         this.jumpingTexture = new Texture[] { Texture.getTexture("robot5.png"), Texture.getTexture("robot5_yel.png"), Texture.getTexture("robot5_ora.png") };
 	}
+
+    public void zap()
+    {
+        if (zapSoundCooldown <= 0)
+        {
+            zapSoundCooldown = 1.010F;
+            Game.getInstance().soundEffectZap.playAsSoundEffect(1.0F, 0.7F, false, this.position.floatX(), this.position.floatY(), 0);
+        }
+        this.scheduleRemoval = true;
+        if (Game.getInstance().startNextWorld(this.world.levelIndex))
+        {
+            Game.getInstance().gameWorld.update(0);
+        }
+    }
 
 	@Override
 	public void initEntity() 
@@ -105,11 +122,15 @@ public class EntityPlayer extends EntityWithLife
             int minX = facingDir == Direction.RIGHT ? 1 : 0;
             int maxX = facingDir == Direction.RIGHT ? 0 : 1;
             Tile.AIR_TILE.colorDynamic(this.position.copy().add(new Vector2d(0, this.size.y / 2)), new Vector2d(0, 0), i == 1 ? new Vector3f(0.6F, 0.6F, 0.6F) : new Vector3f(0.08F, 0.08F, 0.08F), 1.0F);
-            Game.getInstance().tessellator.addVertexScaled(this.boundingBox.minVec.floatX() - 0.2F, this.boundingBox.minVec.floatY() - 0.4F, maxX, 1);
-            Game.getInstance().tessellator.addVertexScaled(this.boundingBox.maxVec.floatX() + 0.2F, this.boundingBox.minVec.floatY() - 0.4F, minX, 1);
-            Game.getInstance().tessellator.addVertexScaled(this.boundingBox.maxVec.floatX() + 0.2F, this.boundingBox.maxVec.floatY() + 0.6F, minX, 0);
-            Game.getInstance().tessellator.addVertexScaled(this.boundingBox.minVec.floatX() - 0.2F, this.boundingBox.maxVec.floatY() + 0.6F, maxX, 0);
-            Game.getInstance().tessellator.draw();
+
+            if (this.boundingBox != null)
+            {
+                Game.getInstance().tessellator.addVertexScaled(this.boundingBox.minVec.floatX() - 0.5F, this.boundingBox.minVec.floatY() - 0.4F, maxX, 1);
+                Game.getInstance().tessellator.addVertexScaled(this.boundingBox.maxVec.floatX() + 0.5F, this.boundingBox.minVec.floatY() - 0.4F, minX, 1);
+                Game.getInstance().tessellator.addVertexScaled(this.boundingBox.maxVec.floatX() + 0.5F, this.boundingBox.maxVec.floatY() + 0.6F, minX, 0);
+                Game.getInstance().tessellator.addVertexScaled(this.boundingBox.minVec.floatX() - 0.5F, this.boundingBox.maxVec.floatY() + 0.6F, maxX, 0);
+                Game.getInstance().tessellator.draw();
+            }
         }
 
         if (Game.getInstance().keyButtonB.isKeyPressed())
@@ -142,6 +163,11 @@ public class EntityPlayer extends EntityWithLife
 	public void update(float deltaTime) 
 	{
 		super.update(deltaTime);
+
+        if (this.zapSoundCooldown > 0)
+        {
+            this.zapSoundCooldown -= deltaTime;
+        }
 
         if (this.onGround && this.isActivePlayer())
         {
@@ -183,9 +209,19 @@ public class EntityPlayer extends EntityWithLife
             }
         }
 
+        this.soundEffectWalkCooldown -= deltaTime;
+
         if (!motionHandled)
         {
             this.motion.x *= (0.9);
+        }
+        else
+        {
+            if (this.soundEffectWalkCooldown <= 0 && this.onGround && this.lastOnGround)
+            {
+                Game.getInstance().soundEffectWalk.playAsSoundEffect(4.0F, 0.3F, false, this.position.floatX(), this.position.floatY(), 0.0F);
+                soundEffectWalkCooldown = 2370 / 4000.0F;
+            }
         }
 
         if (this.isActivePlayer())
@@ -202,7 +238,7 @@ public class EntityPlayer extends EntityWithLife
             }
 
             BoundingBox bounds = this.getBounds().copy();
-            bounds = new BoundingBox(bounds.minVec.x, bounds.minVec.y - 0.55, bounds.maxVec.x, bounds.maxVec.y + 0.55);
+            bounds = new BoundingBox(bounds.minVec.x, bounds.minVec.y - 0.05, bounds.maxVec.x, bounds.maxVec.y + 0.05);
 
             for (TeleportConnection connections : this.world.teleportConnectionList)
             {
@@ -214,7 +250,7 @@ public class EntityPlayer extends EntityWithLife
 
                         if (connection0.direction == Direction.DOWN || b)
                         {
-                            if (bounds.intersects(connection0.point.toDoubleVec().add(new Vector2d(0.5, 0.5))))
+                            if (bounds.intersects(new BoundingBox(connection0.point.toDoubleVec().sub(new Vector2d(0, 0.0)), connection0.point.toDoubleVec().add(new Vector2d(1, 1)))))
                             {
                                 TeleportConnection.DirectionalPoint nextConnection;
                                 if (i == connections.connections.size() - 1)
@@ -253,6 +289,18 @@ public class EntityPlayer extends EntityWithLife
             double mX = box.calcXOffset(this.getBounds(), this.motion.x);
             this.motion.y = mY;
             this.motion.x = mX;
+        }
+
+//        boundsAround = this.world.getBoundsWithin(this.getBounds().copy());
+
+        for (BoundingBox box : boundsAround)
+        {
+            Vector2i vec = box.minVec.toIntVec();
+
+            if (world.getTile(vec.x, vec.y, 1) == Tile.NULL_TILE20)
+            {
+                this.zap();
+            }
         }
 
         this.lightSource.position = this.position.copy().add(new Vector2d(0, this.size.y));

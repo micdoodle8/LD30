@@ -39,7 +39,7 @@ public abstract class GuiScreen extends Gui
 	
 	public void onMouseClick(int x, int y)
 	{
-		for (GuiElement element : elements)
+		for (GuiElement element : new ArrayList<GuiElement>(elements))
 		{
             if (element.isEnabled())
             {
