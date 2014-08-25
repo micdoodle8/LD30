@@ -37,6 +37,8 @@ public class GuiMainMenu extends GuiScreen
             }
         }
 
+        Game.getInstance().musicMenu.playAsSoundEffect(1.0F, 0.1F, false);
+
 		this.addElement(dropdown = new GuiDropdown(Game.getInstance().fontSourceSansProSize16, new Vector2i(Game.getInstance().windowSize.x - 150, Game.getInstance().windowSize.y - 50), new Vector2i(150, 22), selectedIndex, displayModes));
 	}
 
@@ -45,6 +47,10 @@ public class GuiMainMenu extends GuiScreen
 	{
 		super.update(deltaTicks);
         totalTicks += deltaTicks;
+        if (Game.getInstance().musicMain.isPlaying())
+        {
+            Game.getInstance().musicMain.stop();
+        }
 	}
 
 	@Override

@@ -51,6 +51,7 @@ public class GuiChooseLevel extends GuiScreen
 
             if (id < this.gridWidth * this.gridHeight)
             {
+                Game.getInstance().musicMain.playAsMusic(1.0F, 1.0F, true);
                 if (id == 0)
                 {
                     Game.getInstance().setGuiScreen(new GuiIntro());

@@ -55,7 +55,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 //    public Audio soundEffectButton;
     public Audio soundEffectZap;
     public Audio musicMain;
-    public double musicCooldown;
+    public Audio musicMenu;
     public java.util.List<LevelData> levelData = new ArrayList<LevelData>();
     public boolean paused = false;
 
@@ -97,6 +97,7 @@ public class Game extends com.micdoodle8.ld30base.Window
 //            soundEffectButton = AudioLoader.getAudio("WAV", getResource("button.wav").openStream());
             soundEffectZap = AudioLoader.getAudio("OGG", getResource("zap.ogg").openStream());
             musicMain = AudioLoader.getStreamingAudio("OGG", getResource("music.ogg").openConnection().getURL());
+            musicMenu = AudioLoader.getStreamingAudio("OGG", getResource("neutral.ogg").openConnection().getURL());
         }
         catch (Exception e)
         {
@@ -212,12 +213,6 @@ public class Game extends com.micdoodle8.ld30base.Window
 		}
 
         this.totalGameTime += deltaTicks;
-
-        if (musicCooldown <= 0)
-        {
-            this.musicMain.playAsMusic(1.0F, 1.0F, true);
-            this.musicCooldown = 2;
-        }
 
         if (Game.getInstance().keyButtonEsc.isKeyDown())
         {
