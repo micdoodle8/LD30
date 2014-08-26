@@ -31,7 +31,7 @@ public class EntityPlayer extends EntityWithLife
         this.playerType = playerType;
 		this.size = new Vector2d(0.4, 1.8);
         this.position = position;
-        this.lightSource = new Light(this.position.copy().add(new Vector2d(0, this.size.y)), 0.2F, new Vector3f(1, playerType == 1 ? 1 : 0.0F, 0.0F));
+        this.lightSource = new Light(this.position.copy().add(new Vector2d(0, this.size.y)), 1.0F, new Vector3f(1, playerType == 1 ? 1 : 0.0F, 0.0F));
         world.lightList.add(this.lightSource);
         textures = new Texture[][] {
                 {
@@ -127,7 +127,7 @@ public class EntityPlayer extends EntityWithLife
             Game.getInstance().tessellator.start(GL11.GL_QUADS);
             int minX = facingDir == Direction.RIGHT ? 1 : 0;
             int maxX = facingDir == Direction.RIGHT ? 0 : 1;
-            Tile.AIR_TILE.colorDynamic(this.position.copy().add(new Vector2d(0, this.size.y / 2)), new Vector2d(0, 0), i == 1 ? new Vector3f(0.6F, 0.6F, 0.6F) : new Vector3f(0.08F, 0.08F, 0.08F), 1.0F);
+            Tile.AIR_TILE.colorDynamic(this.position.copy().add(new Vector2d(0, this.size.y / 2)), new Vector2d(0, 0), i == 1 ? new Vector3f(1, 0.001F, 0.001F) : (this.playerType == 1 ? new Vector3f(1, 1, 0.001F) : new Vector3f(1.0F, 0.001F, 0.001F)), 1.0F);
 
             if (!this.isActivePlayer())
             {

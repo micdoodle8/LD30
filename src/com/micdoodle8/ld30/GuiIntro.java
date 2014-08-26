@@ -30,7 +30,7 @@ public class GuiIntro extends GuiScreen
     {
         super.draw();
 
-        Game.getInstance().drawTextSplit(Game.getInstance().fontSourceSansProSize32, new Vector2i(Game.getInstance().windowSize.x / 2, (int)(30 + this.scroll / 70.0F)), "You are an AI system in the year 2149. With a recent breakthrough in AI technology, your mainframe has connected with a similar model in a parallel universe. Researchers were not expecting a massive power surge, which caused severe damage to some components of your system. Use your robot and a similar robot in the parallel universe to repair your system before any more damage is done!", Color.cyan, Game.getInstance().windowSize.x - 50);
+        Game.getInstance().drawTextSplit(Game.getInstance().fontSourceSansProSize32, new Vector2i(Game.getInstance().windowSize.x / 2, (int)(30 + this.scroll / 70.0F)), "You are an AI system in the year 2149. With a recent breakthrough in AI technology, your mainframe has connected with a similar model in a parallel universe. Researchers were not expecting a massive power surge, which caused severe damage to some components of your system. Use your robot and a similar robot in the parallel universe to reach the control room of your system. Note: Colored robots can only use telepads/buttons of their color.", Color.cyan, Game.getInstance().windowSize.x - 50);
 
         this.keysTexture.bind();
 
@@ -49,7 +49,7 @@ public class GuiIntro extends GuiScreen
             Game.getInstance().drawText(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 + 108, Game.getInstance().windowSize.y / 2 - 85), "Jump", Color.cyan);
             Game.getInstance().drawText(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 + 135, Game.getInstance().windowSize.y / 2 - 135), "Move Right", Color.cyan);
             Game.getInstance().drawText(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 - 235, Game.getInstance().windowSize.y / 2 - 115), "Move Left", Color.cyan);
-            Game.getInstance().drawText(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 + 20, Game.getInstance().windowSize.y / 2 - 192), "Teleport", Color.cyan);
+            Game.getInstance().drawText(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 + 20, Game.getInstance().windowSize.y / 2 - 192), "Use Telepad", Color.cyan);
             Game.getInstance().drawText(Game.getInstance().fontSourceSansProSize24, new Vector2i(Game.getInstance().windowSize.x / 2 + 20, Game.getInstance().windowSize.y / 2 - 290), "Switch to Parallel Universe", Color.cyan);
         }
     }

@@ -214,6 +214,11 @@ public class Game extends com.micdoodle8.ld30base.Window
 
         this.totalGameTime += deltaTicks;
 
+        if (!(currentScreen instanceof GuiGame))
+        {
+            this.paused = true;
+        }
+
         if (Game.getInstance().keyButtonEsc.isKeyDown())
         {
             this.paused = !this.paused;
@@ -313,6 +318,7 @@ public class Game extends com.micdoodle8.ld30base.Window
             mouseLight = new Light(Game.getInstance().gameWorld.screenCoordsToWorld(Mouse.getX(), Mouse.getY()), 1.0F, Game.getInstance().transitionState == 0 ? new Vector3f(1, 0, 0.8F) : new Vector3f(0.0F, 0.8F, 1.0F));
             gameWorld.lightList.add(mouseLight);
             gameWorld.dynamicLightList.add(mouseLight);
+            Game.getInstance().paused = false;
             this.setGuiScreen(new GuiGame());
             return true;
         }
